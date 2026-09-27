@@ -1,0 +1,17 @@
+{
+  "id": "cloud-devops-ci-pipeline-scheduler",
+  "title": "CI Pipeline Scheduler",
+  "summary": "Schedule a pipeline DAG: deterministic topological order, parallel waves, failure propagation through allow_failure, precise cycle reporting and cache-hit accounting.",
+  "difficulty": "advanced",
+  "track": "cloud-devops",
+  "module": "CI/CD",
+  "level": "senior",
+  "python_version": "3.12",
+  "time_limit_ms": 8000,
+  "memory_limit_mb": 256,
+  "points": 180,
+  "order_index": 3,
+  "skills": ["devops", "devops.ci"],
+  "entry_file": "solution.py",
+  "tags": ["ci", "dag", "topological-sort", "scheduling", "failure-propagation"]
+}

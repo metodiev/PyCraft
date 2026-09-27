@@ -1,0 +1,17 @@
+{
+  "id": "cloud-devops-terraform-plan-diff",
+  "title": "Terraform Plan Diff",
+  "summary": "Reconcile desired against observed infrastructure state: classify create/update/replace/delete, order the plan by dependencies, and summarise it.",
+  "difficulty": "advanced",
+  "track": "cloud-devops",
+  "module": "Infrastructure as Code",
+  "level": "senior",
+  "python_version": "3.12",
+  "time_limit_ms": 8000,
+  "memory_limit_mb": 256,
+  "points": 160,
+  "order_index": 2,
+  "skills": ["devops", "devops.terraform"],
+  "entry_file": "solution.py",
+  "tags": ["terraform", "iac", "diffing", "dependency-order", "planning"]
+}
