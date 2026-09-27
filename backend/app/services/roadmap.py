@@ -46,7 +46,7 @@ ROADMAP: tuple[RoadmapStage, ...] = (
         description="pytest, fixtures, mocking, property-based testing and CI quality gates.",
         level="intermediate",
         skill="testing",
-        requires=("professional-python",),
+        requires=("python-professional",),
     ),
     RoadmapStage(
         id="web-development",
@@ -131,6 +131,29 @@ ROADMAP: tuple[RoadmapStage, ...] = (
 )
 
 STAGES_BY_ID: dict[str, RoadmapStage] = {stage.id: stage for stage in ROADMAP}
+
+
+def _validate_roadmap() -> None:
+    """Fail loudly on a broken roadmap, at import time.
+
+    Every ``requires`` entry must name a real stage, and skills must be unique —
+    the skill graph identifies nodes by skill, so a duplicate would silently
+    merge two stages into one.
+    """
+    for stage in ROADMAP:
+        for required in stage.requires:
+            if required not in STAGES_BY_ID:
+                raise RuntimeError(
+                    f"Roadmap stage {stage.id!r} requires unknown stage {required!r}"
+                )
+
+    skills = [stage.skill for stage in ROADMAP]
+    if len(skills) != len(set(skills)):
+        duplicates = sorted({skill for skill in skills if skills.count(skill) > 1})
+        raise RuntimeError(f"Roadmap stages share skill ids: {duplicates}")
+
+
+_validate_roadmap()
 
 # Developer levels with the XP required to reach them.
 LEVELS: tuple[tuple[str, str, int], ...] = (

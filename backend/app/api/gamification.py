@@ -14,6 +14,9 @@ from app.schemas.gamification import (
     AchievementOut,
     AchievementProgress,
     LeaderboardEntry,
+    SkillEdgeOut,
+    SkillGraphOut,
+    SkillNodeOut,
     StreakOut,
 )
 from app.services.achievements import (
@@ -24,6 +27,7 @@ from app.services.achievements import (
     locked_view,
 )
 from app.services.roadmap import level_for_xp
+from app.services.skill_graph import load_graph
 from app.services.streaks import effective_streak, streak_is_alive
 
 logger = logging.getLogger(__name__)
@@ -74,6 +78,40 @@ async def get_streak(session: SessionDep, user: CurrentUser) -> StreakOut:
         last_active_date=user.last_active_date,
         active_today=user.last_active_date == today,
         alive=streak_is_alive(user, today),
+    )
+
+
+@router.get("/skill-graph", response_model=SkillGraphOut, summary="Skill graph")
+async def get_skill_graph(
+    session: SessionDep, repository: RepositoryDep, user: CurrentUser
+) -> SkillGraphOut:
+    """Every skill, how strong the learner is in it, and what each unlocks."""
+    graph = await load_graph(session, user, repository.all())
+
+    return SkillGraphOut(
+        nodes=[
+            SkillNodeOut(
+                id=node.id,
+                label=node.label,
+                description=node.description,
+                level=node.level,
+                mastery=node.mastery,
+                xp=node.xp,
+                challenges_total=node.challenges_total,
+                challenges_completed=node.challenges_completed,
+                depends_on=node.depends_on,
+                unlocked=node.unlocked,
+                status=node.status,
+                tracks=node.tracks,
+            )
+            for node in graph.nodes
+        ],
+        edges=[
+            SkillEdgeOut(source=edge.source, target=edge.target) for edge in graph.edges
+        ],
+        mastered=graph.mastered,
+        in_progress=graph.in_progress,
+        total=len(graph.nodes),
     )
 
 

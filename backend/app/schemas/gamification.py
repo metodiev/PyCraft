@@ -65,3 +65,34 @@ class SubmissionOutcomeAchievements(BaseModel):
 
     newly_unlocked: list[AchievementOut] = Field(default_factory=list)
     bonus_xp: int = 0
+
+
+class SkillNodeOut(BaseModel):
+    """One node in the skill graph."""
+
+    id: str
+    label: str
+    description: str = ""
+    level: str = "junior"
+    mastery: int = 0
+    xp: int = 0
+    challenges_total: int = 0
+    challenges_completed: int = 0
+    depends_on: list[str] = Field(default_factory=list)
+    unlocked: bool = True
+    # mastered | in_progress | available | unavailable
+    status: str = "available"
+    tracks: list[str] = Field(default_factory=list)
+
+
+class SkillEdgeOut(BaseModel):
+    source: str
+    target: str
+
+
+class SkillGraphOut(BaseModel):
+    nodes: list[SkillNodeOut] = Field(default_factory=list)
+    edges: list[SkillEdgeOut] = Field(default_factory=list)
+    mastered: int = 0
+    in_progress: int = 0
+    total: int = 0
