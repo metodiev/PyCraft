@@ -40,6 +40,6 @@ def test_longest_chain_is_a_valid_and_maximal_start():
     assert winner == smallest_best
 
 
-def test_steps_never_starts_below_one():
-    assert collatz_steps(1) == 0
-    assert collatz_steps(2) == collatz_steps(4) + 1
+def test_even_starts_use_exactly_one_extra_step():
+    for n in (2, 4, 8, 16, 32, 64):
+        assert collatz_steps(n) == collatz_steps(n // 2) + 1

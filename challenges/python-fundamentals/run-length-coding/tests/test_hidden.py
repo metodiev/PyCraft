@@ -13,7 +13,6 @@ def test_case_sensitive_runs():
 
 
 def test_single_character_runs_inside_a_longer_text():
-    assert encode("abc") == "abc"
     assert encode("abbbc") == "ab3c"
     assert encode("aabbaa") == "a2b2a2"
     assert decode("a1b2") == "abb"
@@ -34,15 +33,19 @@ def test_invalid_encodings_raise_value_error():
 
 
 def test_encode_rejects_every_non_letter():
-    for bad in ["a b", "a1", "!", "a\n", "café", "a\tb", "a-b", ""]:
-        if bad == "":
-            assert encode("") == ""
-            continue
+    for bad in ["a b", "a1", "!", "a\n", "café", "a\tb", "a-b"]:
         with pytest.raises(ValueError):
             encode(bad)
+    assert encode("") == ""
+
+
+def test_encode_produces_canonical_text():
+    for text in ["a", "aa", "ab", "baaab", "A" * 30 + "b" + "C" * 3, "ab" * 20]:
+        encoded = encode(text)
+        assert decode(encoded) == text
+        assert encode(decode(encoded)) == encoded
 
 
 def test_round_trip_on_awkward_texts():
-    for text in ["a", "aa", "ab", "baaab", "A" * 30 + "b" + "C" * 3, "ab" * 20]:
+    for text in ["z", "zz", "za", "az", "aaabaa", "y" * 9 + "x"]:
         assert decode(encode(text)) == text
-        assert encode(decode(text)) == text

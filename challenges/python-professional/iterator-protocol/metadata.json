@@ -1,0 +1,17 @@
+{
+  "id": "python-professional-iterator-protocol",
+  "title": "Iterator Protocol",
+  "summary": "Implement a restartable range-like iterable and a one-shot iterator with exact exhaustion semantics.",
+  "difficulty": "advanced",
+  "track": "python-professional",
+  "module": "Iterators & Protocols",
+  "level": "senior",
+  "python_version": "3.12",
+  "time_limit_ms": 5000,
+  "memory_limit_mb": 128,
+  "points": 150,
+  "order_index": 6,
+  "skills": ["python.iterators", "python.protocols", "python.professional"],
+  "entry_file": "solution.py",
+  "tags": ["iterators", "protocols", "dunder-methods"]
+}

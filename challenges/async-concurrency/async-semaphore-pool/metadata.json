@@ -1,0 +1,17 @@
+{
+  "id": "async-concurrency-async-semaphore-pool",
+  "title": "Bounded Async Worker Pool",
+  "summary": "Run coroutines with a hard concurrency cap while collecting every result and error.",
+  "difficulty": "intermediate",
+  "track": "async-concurrency",
+  "module": "asyncio",
+  "level": "intermediate",
+  "python_version": "3.12",
+  "time_limit_ms": 8000,
+  "memory_limit_mb": 256,
+  "points": 100,
+  "order_index": 1,
+  "skills": ["async.asyncio", "async.concurrency"],
+  "entry_file": "solution.py",
+  "tags": ["asyncio", "concurrency", "backpressure"]
+}

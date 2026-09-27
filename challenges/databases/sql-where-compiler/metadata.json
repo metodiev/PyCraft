@@ -1,0 +1,17 @@
+{
+  "id": "databases-sql-where-compiler",
+  "title": "SQL WHERE Compiler",
+  "summary": "Parse a restricted WHERE clause into a predicate and run it against rows, with NULL semantics.",
+  "difficulty": "easy",
+  "track": "databases",
+  "module": "SQL",
+  "level": "junior",
+  "python_version": "3.12",
+  "time_limit_ms": 5000,
+  "memory_limit_mb": 128,
+  "points": 50,
+  "order_index": 1,
+  "skills": ["databases.sql", "python.strings"],
+  "entry_file": "solution.py",
+  "tags": ["sql", "parsing", "predicates", "null"]
+}

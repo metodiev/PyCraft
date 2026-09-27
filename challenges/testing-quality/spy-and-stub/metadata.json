@@ -1,0 +1,17 @@
+{
+  "id": "testing-quality-spy-and-stub",
+  "title": "Spy and Stub",
+  "summary": "Build test doubles that record every call and replay scripted return values or exceptions.",
+  "difficulty": "easy",
+  "track": "testing-quality",
+  "module": "Test Doubles",
+  "level": "junior",
+  "python_version": "3.12",
+  "time_limit_ms": 5000,
+  "memory_limit_mb": 128,
+  "points": 50,
+  "order_index": 1,
+  "skills": ["testing.mocking", "python.professional"],
+  "entry_file": "solution.py",
+  "tags": ["testing", "test-doubles", "spy", "stub"]
+}

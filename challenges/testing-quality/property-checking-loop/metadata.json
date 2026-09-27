@@ -1,0 +1,17 @@
+{
+  "id": "testing-quality-property-checking-loop",
+  "title": "Property Checking Loop",
+  "summary": "Build a deterministic property-based checker with seeded generation and integer shrinking.",
+  "difficulty": "intermediate",
+  "track": "testing-quality",
+  "module": "Property-Based Testing",
+  "level": "intermediate",
+  "python_version": "3.12",
+  "time_limit_ms": 5000,
+  "memory_limit_mb": 128,
+  "points": 100,
+  "order_index": 2,
+  "skills": ["testing.property_based", "testing.pytest"],
+  "entry_file": "solution.py",
+  "tags": ["testing", "property-based", "randomness", "shrinking"]
+}

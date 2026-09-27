@@ -1,0 +1,17 @@
+{
+  "id": "python-professional-lazy-batch-pipeline",
+  "title": "Lazy Batch Pipeline",
+  "summary": "Stream an iterable into batches and map chunks without ever materialising the source.",
+  "difficulty": "advanced",
+  "track": "python-professional",
+  "module": "Generators",
+  "level": "senior",
+  "python_version": "3.12",
+  "time_limit_ms": 5000,
+  "memory_limit_mb": 128,
+  "points": 150,
+  "order_index": 4,
+  "skills": ["python.generators", "python.professional"],
+  "entry_file": "solution.py",
+  "tags": ["generators", "iterators", "laziness", "streaming"]
+}

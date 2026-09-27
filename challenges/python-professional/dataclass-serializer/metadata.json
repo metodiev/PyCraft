@@ -1,0 +1,17 @@
+{
+  "id": "python-professional-dataclass-serializer",
+  "title": "Dataclass Serializer",
+  "summary": "Round-trip nested dataclasses through plain dicts with real type validation.",
+  "difficulty": "intermediate",
+  "track": "python-professional",
+  "module": "Dataclasses & Typing",
+  "level": "intermediate",
+  "python_version": "3.12",
+  "time_limit_ms": 5000,
+  "memory_limit_mb": 128,
+  "points": 100,
+  "order_index": 5,
+  "skills": ["python.dataclasses", "python.typing", "python.professional"],
+  "entry_file": "solution.py",
+  "tags": ["dataclasses", "typing", "serialization", "validation"]
+}

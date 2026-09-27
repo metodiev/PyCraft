@@ -1,0 +1,17 @@
+{
+  "id": "databases-mvcc-visibility",
+  "title": "MVCC Visibility",
+  "summary": "Implement snapshot-isolation version visibility and prove two writers cannot silently lose an update.",
+  "difficulty": "advanced",
+  "track": "databases",
+  "module": "Transactions",
+  "level": "senior",
+  "python_version": "3.12",
+  "time_limit_ms": 5000,
+  "memory_limit_mb": 128,
+  "points": 150,
+  "order_index": 2,
+  "skills": ["databases.transactions", "databases.sql", "distributed.consistency"],
+  "entry_file": "solution.py",
+  "tags": ["mvcc", "transactions", "isolation", "concurrency"]
+}

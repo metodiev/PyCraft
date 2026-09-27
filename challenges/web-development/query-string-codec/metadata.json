@@ -1,0 +1,17 @@
+{
+  "id": "web-development-query-string-codec",
+  "title": "Query String Codec",
+  "summary": "Encode and decode URL query strings with correct percent-escaping and repeated keys.",
+  "difficulty": "easy",
+  "track": "web-development",
+  "module": "HTTP Basics",
+  "level": "junior",
+  "python_version": "3.12",
+  "time_limit_ms": 5000,
+  "memory_limit_mb": 128,
+  "points": 50,
+  "order_index": 1,
+  "skills": ["web.http", "python.strings"],
+  "entry_file": "solution.py",
+  "tags": ["http", "url", "encoding"]
+}

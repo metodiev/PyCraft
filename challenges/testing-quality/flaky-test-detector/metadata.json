@@ -1,0 +1,17 @@
+{
+  "id": "testing-quality-flaky-test-detector",
+  "title": "Flaky Test Detector",
+  "summary": "Quarantine non-deterministic tests from recorded run histories, with a reproducible verdict.",
+  "difficulty": "advanced",
+  "track": "testing-quality",
+  "module": "CI Quality Gates",
+  "level": "senior",
+  "python_version": "3.12",
+  "time_limit_ms": 5000,
+  "memory_limit_mb": 128,
+  "points": 150,
+  "order_index": 3,
+  "skills": ["testing.ci", "testing.quality", "python.collections"],
+  "entry_file": "solution.py",
+  "tags": ["testing", "flaky", "ci", "statistics"]
+}

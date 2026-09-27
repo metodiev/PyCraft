@@ -1,0 +1,17 @@
+{
+  "id": "python-fundamentals-csv-line-parser",
+  "title": "CSV Line Parser",
+  "summary": "Parse one RFC 4180 style CSV line, honouring quoted fields and rejecting malformed input.",
+  "difficulty": "intermediate",
+  "track": "python-fundamentals",
+  "module": "Strings",
+  "level": "junior",
+  "python_version": "3.12",
+  "time_limit_ms": 5000,
+  "memory_limit_mb": 128,
+  "points": 100,
+  "order_index": 6,
+  "skills": ["python.strings", "python.control_flow"],
+  "entry_file": "solution.py",
+  "tags": ["strings", "parsing", "csv"]
+}

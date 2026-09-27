@@ -1,0 +1,17 @@
+{
+  "id": "python-professional-atomic-rollback",
+  "title": "Atomic Rollback",
+  "summary": "Build a context manager that restores a mapping exactly as it was when the block raises.",
+  "difficulty": "easy",
+  "track": "python-professional",
+  "module": "Context Managers",
+  "level": "junior",
+  "python_version": "3.12",
+  "time_limit_ms": 5000,
+  "memory_limit_mb": 128,
+  "points": 50,
+  "order_index": 3,
+  "skills": ["python.context_managers", "python.professional"],
+  "entry_file": "solution.py",
+  "tags": ["context-managers", "exceptions", "state"]
+}

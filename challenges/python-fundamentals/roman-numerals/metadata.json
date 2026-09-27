@@ -1,0 +1,17 @@
+{
+  "id": "python-fundamentals-roman-numerals",
+  "title": "Roman Numerals",
+  "summary": "Convert integers to Roman numerals and back, rejecting everything outside the canonical form.",
+  "difficulty": "easy",
+  "track": "python-fundamentals",
+  "module": "Strings",
+  "level": "junior",
+  "python_version": "3.12",
+  "time_limit_ms": 5000,
+  "memory_limit_mb": 128,
+  "points": 50,
+  "order_index": 7,
+  "skills": ["python.strings", "python.control_flow", "python.fundamentals"],
+  "entry_file": "solution.py",
+  "tags": ["strings", "numbers", "validation"]
+}
