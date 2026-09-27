@@ -1,0 +1,30 @@
+{
+  "id": "async-concurrency-async-job-queue",
+  "title": "Project: Asynchronous Job Processing System",
+  "summary": "Build a retry policy, a bounded worker-pool job queue with a dead-letter queue, and the system that wires them together.",
+  "difficulty": "advanced",
+  "track": "async-concurrency",
+  "module": "Projects",
+  "level": "senior",
+  "kind": "project",
+  "python_version": "3.12",
+  "time_limit_ms": 8000,
+  "memory_limit_mb": 256,
+  "points": 200,
+  "order_index": 10,
+  "skills": ["async.asyncio", "async.concurrency", "backend.service_design"],
+  "entry_file": "system.py",
+  "tags": ["asyncio", "concurrency", "retry", "backoff", "dead-letter", "backpressure"],
+  "rubric": [
+    {
+      "label": "Correctness",
+      "weight": 70,
+      "description": "Every visible and hidden test passes: exponential backoff with a cap, retryability decisions, one result per job, ordered results and statistics."
+    },
+    {
+      "label": "Concurrency",
+      "weight": 30,
+      "description": "The concurrency cap is never exceeded, no accepted job is lost when a sibling fails, and shutdown drains in-flight work rather than cancelling or abandoning it."
+    }
+  ]
+}
