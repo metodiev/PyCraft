@@ -176,6 +176,61 @@ print([c.id for c in r.load_all(strict=True)], r.errors)
 
 Restart the API to pick up new content (the catalogue is indexed at startup).
 
+## Projects
+
+A **project** is a challenge whose starter spans several modules. The loader
+infers `kind: "project"` from a multi-file `starter/`, so an author only has to
+add a second file to get one. Declaring `"kind": "project"` explicitly, as every
+shipped project does, is clearer in review.
+
+```
+challenges/<track>/<slug>/
+├── metadata.json         # kind: "project", entry_file, rubric
+├── description.md
+├── starter/
+│   ├── router.py
+│   ├── middleware.py
+│   └── service.py        # entry_file
+└── tests/
+    ├── test_visible.py
+    └── test_hidden.py
+```
+
+Rules that the platform holds you to:
+
+| Rule | Why |
+| --- | --- |
+| Every starter file raises `NotImplementedError` and carries a `# TODO` | A project must not ship a working implementation |
+| The `rubric` weights total exactly 100 | It documents *why* the project is scored as it is |
+| Tests import modules by plain name (`from router import Router`) | The runner materialises starter files flat beside the tests |
+| Standard library only | The sandbox ships CPython 3.12, pytest and pytest-asyncio, nothing else |
+| No third-party imports, even guarded | There is no network and no `pip` inside the sandbox |
+
+The workspace editor gives projects a file tab strip and submits **every**
+editable file, so an untouched helper still resolves at import time. A
+single-file challenge keeps the plain filename chip it always had.
+
+A hidden suite for a project is where the design is really graded. Aim it at the
+mistakes a competent-but-hasty implementation makes: first-match instead of
+best-match routing, `if not value` treating `0`/`""` as absent, a mutable
+default shared between instances, a dependency cached across requests, money
+through floats, `round()` where half-up is required, and a write that is
+committed before its preconditions are checked.
+
+### Verifying a project discriminates
+
+Content tests prove a project is well-formed. Proving it is *good* needs a
+reference and a naive variant, checked against the same suites:
+
+| Variant | Visible | Hidden |
+| --- | --- | --- |
+| shipped starter | must fail | must fail |
+| reference solution | must pass | must pass |
+| plausible naive solution | must pass | must **fail at least one** |
+
+If the naive variant passes everything, the hidden suite is not adding coverage.
+If it fails the visible suite too, its bug is too obvious to be interesting.
+
 ## Checklist before opening a PR
 
 - [ ] `id` equals `<track>-<slug>` and matches the directory

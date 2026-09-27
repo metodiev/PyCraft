@@ -43,6 +43,11 @@ packages = ["app"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+# The docker tier needs a running daemon and the runner image, so it is opt-in.
+# Without this the default `pytest` run fails on any machine that has no Docker,
+# which is exactly what the docs promise it will not do. `-m docker` on the
+# command line overrides this, so the sandbox suite still runs when asked for.
+addopts = "-m 'not docker'"
 markers = [
     "docker: integration tests that require a running Docker daemon",
 ]

@@ -29,6 +29,8 @@ jobs:
         run: ruff check backend/app backend/tests runner
 
       - name: Tests
+        # The docker tier is deselected by default (see pyproject addopts); it
+        # runs in the `runner` job below, which actually builds the image.
         run: pytest backend/tests -q
 
   runner:
