@@ -1,0 +1,35 @@
+{
+  "id": "web-development-validated-microservice",
+  "title": "Project: Validated Microservice",
+  "summary": "Build a framework-free API core: a declarative validation layer that reports every error, a typed error hierarchy with HTTP status mapping, and a dispatcher with per-request dependency injection.",
+  "difficulty": "advanced",
+  "track": "web-development",
+  "module": "Projects",
+  "level": "senior",
+  "kind": "project",
+  "python_version": "3.12",
+  "time_limit_ms": 8000,
+  "memory_limit_mb": 256,
+  "points": 200,
+  "order_index": 10,
+  "skills": ["web", "web.api", "architecture.separation"],
+  "entry_file": "service.py",
+  "tags": ["api-design", "validation", "dependency-injection", "errors", "http"],
+  "rubric": [
+    {
+      "label": "Correctness",
+      "weight": 60,
+      "description": "Every visible and hidden test passes: coercion, constraints, complete error reporting, status mapping, dispatch and injection."
+    },
+    {
+      "label": "Error reporting",
+      "weight": 25,
+      "description": "Validation collects every problem with the path to the offending value instead of stopping at the first, and each failure maps to the right HTTP status."
+    },
+    {
+      "label": "Request lifetimes",
+      "weight": 15,
+      "description": "A dependency is constructed once per request, is never shared between requests, and is torn down even when the handler raises."
+    }
+  ]
+}
