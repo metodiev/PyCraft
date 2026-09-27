@@ -81,6 +81,8 @@ class SubmitResponse(BaseModel):
     dimensions: list[dict] = Field(default_factory=list)
     summary: str = ""
     progress: ProgressSummary | None = None
+    # Achievements unlocked by this submission, so the UI can celebrate them.
+    newly_unlocked: list[dict] = Field(default_factory=list)
 
 
 class ChallengeSummary(BaseModel):

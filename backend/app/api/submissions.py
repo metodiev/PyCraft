@@ -9,6 +9,7 @@ from fastapi import APIRouter, HTTPException, status
 from app.api.deps import BackendDep, CurrentUser, RepositoryDep, SessionDep, SettingsDep
 from app.execution.models import ExecutionError
 from app.schemas import RunResponse, SubmissionRequest, SubmitResponse, TestResultSchema
+from app.services.achievements import unlocked_out
 from app.services.challenges import ChallengeNotFoundError
 from app.services.submissions import SubmissionService
 
@@ -81,6 +82,8 @@ async def submit_challenge(
         ) from exc
 
     scoring = outcome["scoring"]
+    unlocked = outcome.get("achievements") or []
+
     return SubmitResponse(
         submission_id=submission.id,
         status=str(report.status),
@@ -105,4 +108,5 @@ async def submit_challenge(
         dimensions=[d.to_dict() for d in scoring.dimensions],
         summary=scoring.summary,
         progress=outcome["progress"],
+        newly_unlocked=[unlocked_out(achievement) for achievement in unlocked],
     )

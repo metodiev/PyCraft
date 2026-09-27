@@ -1,0 +1,157 @@
+/*
+ * Form primitives shared by the auth pages and the profile editor.
+ *
+ * Kept global (rather than per page) so an input looks identical wherever it
+ * appears, and so focus, invalid and disabled states are defined exactly once.
+ */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.field-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.field-label {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.field-optional {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.field-input,
+.field-textarea {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-inset);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: var(--text-base);
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.field-textarea {
+  resize: vertical;
+  min-height: 96px;
+  line-height: 1.5;
+}
+
+.field-input::placeholder,
+.field-textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.field-input:hover:not(:disabled),
+.field-textarea:hover:not(:disabled) {
+  border-color: var(--border-strong);
+}
+
+.field-input:focus,
+.field-textarea:focus {
+  outline: none;
+  border-color: var(--accent-border);
+  background: var(--bg-panel);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+.field-input[aria-invalid="true"],
+.field-textarea[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
+.field-input[aria-invalid="true"]:focus,
+.field-textarea[aria-invalid="true"]:focus {
+  box-shadow: 0 0 0 3px var(--danger-dim);
+}
+
+.field-input:disabled,
+.field-textarea:disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.field-hint {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.field-error {
+  color: var(--danger);
+  font-size: var(--text-xs);
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+@media (max-width: 640px) {
+  .field-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- password requirements --------------------------------------------- */
+.password-meter {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--bg-inset);
+  overflow: hidden;
+}
+
+.password-meter-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 200ms ease, background var(--transition);
+}
+
+.password-meter-fill[data-strength="weak"] {
+  background: var(--danger);
+}
+
+.password-meter-fill[data-strength="fair"] {
+  background: var(--warning);
+}
+
+.password-meter-fill[data-strength="strong"] {
+  background: var(--success);
+}
+
+.req-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-1);
+}
+
+.req {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.req-marker {
+  width: 14px;
+  text-align: center;
+  font-family: var(--font-mono);
+}
+
+.req[data-met="true"] {
+  color: var(--success);
+}

@@ -19,7 +19,7 @@ from app.execution.models import (
     TestOutcome,
     TestResult,
 )
-from app.models import ChallengeProgress, ProgressStatus, SkillProgress, Submission
+from app.models import ChallengeProgress, ProgressStatus, SkillProgress, Submission, User
 from app.models.submission import SubmissionKind, SubmissionStatus
 from app.services.challenges import ChallengeRepository, LoadedChallenge
 from app.services.roadmap import level_for_xp
@@ -52,9 +52,13 @@ class SubmissionService:
     ) -> tuple[Submission, ExecutionReport, dict]:
         submission, report = await self._execute(user_id, challenge_id, files, ExecutionMode.SUBMIT)
         scoring = self._grade(submission, report)
-        await self._record_progress(user_id, submission, scoring)
+        unlocked = await self._record_progress(user_id, submission, scoring)
         progress = await self._progress_snapshot(user_id)
-        return submission, report, {"scoring": scoring, "progress": progress}
+        return submission, report, {
+            "scoring": scoring,
+            "progress": progress,
+            "achievements": unlocked,
+        }
 
     # --- execution -------------------------------------------------------
     async def _execute(
@@ -190,8 +194,11 @@ class SubmissionService:
             self._session.add(progress)
         progress.attempts += 1
 
-    async def _record_progress(self, user_id, submission: Submission, scoring) -> None:
-        """Update completion status, XP and skill mastery after a Submit."""
+    async def _record_progress(self, user_id, submission: Submission, scoring) -> list:
+        """Update completion, XP, skills, streak and achievements after a Submit.
+
+        Returns any achievements unlocked by this submission.
+        """
         challenge = self._repository.get(submission.challenge_id)
         progress = await self._get_progress(user_id, challenge.id)
         if progress is None:  # pragma: no cover - _touch_progress always creates it
@@ -208,17 +215,47 @@ class SubmissionService:
         if submission.score is not None:
             progress.best_score = max(progress.best_score, submission.score)
 
+        newly_completed = False
         if scoring.passed and progress.status is not ProgressStatus.COMPLETED:
             progress.status = ProgressStatus.COMPLETED
             progress.completed_at = _utcnow()
-            await self._award_xp(user_id, challenge.points)
+            newly_completed = True
 
         await self._update_skills(user_id, challenge, scoring.score)
+
+        if newly_completed:
+            await self._record_activity(user_id)
+            await self._award_xp(user_id, challenge.points)
+
+        await self._session.flush()
+        unlocked = await self._unlock_achievements(user_id, challenge.id)
         await self._session.commit()
+        return unlocked
+
+    async def _record_activity(self, user_id) -> None:
+        """Advance the learner's streak for a genuine solve."""
+        from app.services.streaks import register_activity
+
+        user = await self._session.get(User, user_id)
+        if user is not None:
+            register_activity(user, _today())
+
+    async def _unlock_achievements(self, user_id, challenge_id: str) -> list:
+        """Evaluate achievements after a solve and return any newly unlocked."""
+        from app.services.achievements import evaluate_and_unlock
+
+        user = await self._session.get(User, user_id)
+        if user is None:  # pragma: no cover - the user always exists here
+            return []
+        challenge_index = {c.id: c for c in self._repository.all()}
+        return await evaluate_and_unlock(
+            self._session,
+            user,
+            challenge_index=challenge_index,
+            context={"challenge_id": challenge_id},
+        )
 
     async def _award_xp(self, user_id, points: int) -> None:
-        from app.models import User
-
         user = await self._session.get(User, user_id)
         if user is not None:
             user.xp += points
@@ -246,8 +283,6 @@ class SubmissionService:
         )
 
     async def _progress_snapshot(self, user_id) -> dict:
-        from app.models import User
-
         user = await self._session.get(User, user_id)
         xp = user.xp if user else 0
         level_id, level_label, xp_into = level_for_xp(xp)
@@ -302,3 +337,9 @@ def _utcnow():
     from datetime import UTC, datetime
 
     return datetime.now(UTC)
+
+
+def _today():
+    from datetime import UTC, datetime
+
+    return datetime.now(UTC).date()

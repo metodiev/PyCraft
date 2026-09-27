@@ -154,19 +154,26 @@ async def test_progress_updates_after_successful_submit(client: AsyncClient) -> 
 
     after = (await client.get("/api/v1/progress")).json()
     assert after["completed_challenges"] == 1
-    assert after["xp"] == 50
     assert after["completion_pct"] == 100
+    # XP is the 50-point challenge plus any achievement bonuses earned along
+    # the way, so assert the challenge portion is included rather than pinning
+    # an exact total that changes whenever an achievement is added.
+    assert after["xp"] >= 50
     assert after["level_id"] == "junior"
 
 
 @pytest.mark.asyncio
 async def test_xp_is_not_awarded_twice(client: AsyncClient) -> None:
     await client.post(f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": SOLUTION})
+    after_first_pass = (await client.get("/api/v1/progress")).json()["xp"]
+
     await client.post(f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": SOLUTION})
 
     progress = (await client.get("/api/v1/progress")).json()
-    assert progress["xp"] == 50
     assert progress["completed_challenges"] == 1
+    # Re-solving must not award the challenge's XP a second time. Achievements
+    # are one-shot too, so the total is stable across repeats.
+    assert progress["xp"] == after_first_pass
 
 
 @pytest.mark.asyncio
@@ -197,8 +204,8 @@ async def test_dashboard_returns_full_payload(client: AsyncClient) -> None:
     assert response.status_code == 200
     body = response.json()
 
-    assert body["progress"]["xp"] == 50
     assert body["progress"]["completed_challenges"] == 1
+    assert body["progress"]["xp"] >= 50
     assert body["progress"]["next_level_label"] == "Intermediate"
     assert len(body["recent_submissions"]) == 1
     assert body["recent_submissions"][0]["score"] == 100

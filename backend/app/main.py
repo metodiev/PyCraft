@@ -13,7 +13,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import auth, challenges, dashboard, github, runtime, submissions
+from app.api import auth, challenges, dashboard, gamification, github, runtime, submissions
 from app.core.config import Settings, get_settings
 from app.db.base import Base
 from app.db.session import dispose_engine, get_engine, get_session_factory, init_engine
@@ -137,6 +137,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         challenges.router,
         submissions.router,
         dashboard.router,
+        gamification.router,
         runtime.router,
     )
     for router in api_routers:
