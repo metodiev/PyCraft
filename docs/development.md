@@ -57,6 +57,10 @@ npm run dev
 - `/api` is proxied to the backend, so no CORS setup is needed day to day.
 - Override the proxy target with `VITE_API_TARGET` if the API runs elsewhere.
 
+Sign-in lives entirely in the frontend; see
+[frontend/README.md](../frontend/README.md#authentication) for how tokens are
+stored, attached and refreshed.
+
 ## 4. Or: everything at once
 
 ```bash

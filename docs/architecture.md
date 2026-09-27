@@ -100,6 +100,11 @@ challenges/<track>/<slug>/
     └── test_hidden.py    # graded only
 ```
 
+A **project** is the same shape with several starter files. The loader infers
+`kind: "project"` from a multi-file starter, so authors need not declare it. The
+submission pipeline is shared: project files are merged over the starter before
+execution, which means an unmodified helper still resolves at import time.
+
 The loader ([`app/services/challenges.py`](../backend/app/services/challenges.py))
 enforces invariants in CI: `id` must equal `<track>-<slug>`, the track must match
 its directory, an entry file must exist, and there must be at least one visible
@@ -122,6 +127,45 @@ The dimension weights are data, not control flow
 ([`app/services/scoring.py`](../backend/app/services/scoring.py)), so adding test
 quality, security, or architecture signals later is a table change plus one
 function, not a refactor. Weighted correctness is 60% hidden / 40% visible.
+
+## Gamification and the skill graph
+
+Achievements are **definitions in code** plus **unlock rows in the database**
+([`app/services/achievements.py`](../backend/app/services/achievements.py)).
+Adding one needs no migration, and re-evaluation is cheap: every predicate reads
+a `LearnerSnapshot` built with a bounded number of queries, so evaluation never
+becomes an N+1 problem as the catalogue grows.
+
+Streaks count days on which a learner *solves* something, and lapse at read time
+so a stale streak is never displayed. A two-day grace window tolerates a
+late-night session crossing midnight.
+
+The skill graph ([`app/services/skill_graph.py`](../backend/app/services/skill_graph.py))
+is derived from content rather than maintained by hand: challenge metadata
+declares which skills a challenge demonstrates, the roadmap declares each
+stage's skill and prerequisites, and the graph joins both with the learner's
+record. Adding a challenge therefore cannot leave the graph stale.
+
+`app/services/roadmap.py` validates itself at import time — every `requires`
+must name a real stage and skill ids must be unique — because a stale id once
+silently produced a wrong graph rather than an error.
+
+## AI assistance
+
+Every provider is a scaffold, never a solution generator, and that is enforced
+structurally rather than only by prompt
+([`app/services/ai.py`](../backend/app/services/ai.py)):
+
+- The sanitiser strips fenced code blocks and flags whole-solution phrasing,
+  because a model can always ignore an instruction.
+- Hint prompts are built from the challenge author's own hints, so generated
+  guidance elaborates on curated material instead of inventing a shortcut.
+- A fully filtered response becomes an error rather than an empty panel.
+- The catalogue exposes no "write my code" capability at all.
+
+Providers implement a two-method protocol, so swapping in a different vendor or
+a self-hosted model touches one class. AI is disabled by default; every endpoint
+returns a clear 503 explaining what to configure.
 
 ## Frontend structure
 
@@ -163,5 +207,10 @@ never destroys in-progress work.
 - **A job queue.** Execution is synchronous within the request. The concurrency
   semaphore bounds load; a Celery/Redis queue is the natural next step when
   submissions outgrow a single process.
-- **AI assistance.** Not started. The spec is explicit that AI must not become
-  the primary learning mechanism; hints and code review are the intended scope.
+- **Migrations.** The schema is created from the models at startup. Startup
+  detects a development database missing columns and logs the remedy, but
+  evolving a database with real data in it needs Alembic; see
+  [database.md](./database.md#migrations).
+- **Distributed rate limiting.** The AI rate limiter is an in-process sliding
+  window. It is exact for a single worker and needs Redis for several, which is
+  the same upgrade the job queue needs.

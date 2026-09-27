@@ -58,15 +58,18 @@ Full instructions: [docs/development.md](docs/development.md).
 | Multi-dimensional scoring | ✅ |
 | Dashboard: level, skills, roadmap, recent submissions | ✅ |
 | 13-stage engineering roadmap | ✅ |
-| 5 challenges across 2 tracks | ✅ |
-| CI: lint, tests, sandbox security tests, content validation | ✅ |
-| Authentication (email/password + GitHub OAuth, sessions, reset) | ✅ |
+| Authentication: email/password, GitHub OAuth, sessions, reset | ✅ |
 | Profile management and active-session control | ✅ |
 | Roles: learner / author / admin | ✅ |
-| Gamification: achievements, streaks, leaderboards | ⏳ in progress |
-| Challenge authoring UI | ⏳ content is authored as files |
-| Real-world projects | ⏳ not started |
-| AI assistance | ⏳ not started |
+| Gamification: 20 achievements, streaks, leaderboards | ✅ |
+| Skill graph with prerequisite edges | ✅ |
+| Challenge authoring API with validation and publishing | ✅ |
+| Multi-file project challenges with rubrics | ✅ |
+| AI assistance: hints, explanations, reviews (leak-guarded) | ✅ |
+| CI: lint, tests, sandbox security tests, content validation | ✅ |
+| Challenge authoring UI | ⏳ API only |
+| More curriculum across all 13 tracks | ⏳ in progress |
+| The remaining real-world projects | ⏳ 1 of 8 |
 
 ## Repository layout
 
