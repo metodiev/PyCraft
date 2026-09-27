@@ -1,0 +1,17 @@
+{
+  "id": "principal-engineer-canary-rollout",
+  "title": "Canary Rollout with Error Budgets",
+  "summary": "Drive a progressive rollout from observed telemetry: promote only while the error budget holds, halt on a breach, and roll back without losing the evidence.",
+  "difficulty": "expert",
+  "track": "principal-engineer",
+  "module": "Reliability",
+  "level": "principal",
+  "python_version": "3.12",
+  "time_limit_ms": 8000,
+  "memory_limit_mb": 256,
+  "points": 250,
+  "order_index": 2,
+  "skills": ["leadership", "devops"],
+  "entry_file": "solution.py",
+  "tags": ["canary", "slo", "error-budget", "rollback", "reliability"]
+}

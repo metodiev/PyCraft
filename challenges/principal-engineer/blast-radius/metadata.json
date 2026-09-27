@@ -1,0 +1,17 @@
+{
+  "id": "principal-engineer-blast-radius",
+  "title": "Blast Radius Analysis",
+  "summary": "Reason about failure domains: what a dependency outage takes down, which components are single points of failure, and how deep the critical path runs.",
+  "difficulty": "expert",
+  "track": "principal-engineer",
+  "module": "Resilience",
+  "level": "principal",
+  "python_version": "3.12",
+  "time_limit_ms": 8000,
+  "memory_limit_mb": 256,
+  "points": 250,
+  "order_index": 3,
+  "skills": ["leadership", "architecture", "distributed"],
+  "entry_file": "solution.py",
+  "tags": ["resilience", "spof", "failure-domains", "dependencies", "risk"]
+}

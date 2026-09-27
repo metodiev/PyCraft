@@ -1,0 +1,17 @@
+{
+  "id": "principal-engineer-capacity-cost-planner",
+  "title": "Capacity & Cost Planner",
+  "summary": "Turn a traffic forecast into an instance fleet that meets an SLO at the lowest cost, including headroom and failure-domain survivability.",
+  "difficulty": "expert",
+  "track": "principal-engineer",
+  "module": "Cost & Capacity",
+  "level": "principal",
+  "python_version": "3.12",
+  "time_limit_ms": 8000,
+  "memory_limit_mb": 256,
+  "points": 250,
+  "order_index": 1,
+  "skills": ["leadership", "performance"],
+  "entry_file": "solution.py",
+  "tags": ["capacity", "cost", "slo", "reliability", "trade-offs"]
+}
