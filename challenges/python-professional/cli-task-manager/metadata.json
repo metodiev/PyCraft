@@ -1,0 +1,30 @@
+{
+  "id": "python-professional-cli-task-manager",
+  "title": "Project: CLI Task Manager",
+  "summary": "Build a persistent command-line task manager: a validated model, an atomic JSON store and a command dispatcher.",
+  "difficulty": "intermediate",
+  "track": "python-professional",
+  "module": "Projects",
+  "level": "junior",
+  "kind": "project",
+  "python_version": "3.12",
+  "time_limit_ms": 8000,
+  "memory_limit_mb": 256,
+  "points": 150,
+  "order_index": 10,
+  "skills": ["python.professional", "python.fundamentals", "testing"],
+  "entry_file": "cli.py",
+  "tags": ["cli", "persistence", "dataclasses", "validation"],
+  "rubric": [
+    {
+      "label": "Correctness",
+      "weight": 70,
+      "description": "Every visible and hidden test passes: validation, ordering, identity and persistence."
+    },
+    {
+      "label": "Design",
+      "weight": 30,
+      "description": "The model, the store and the command layer stay separable; the CLI contains no persistence logic and the store contains no formatting."
+    }
+  ]
+}

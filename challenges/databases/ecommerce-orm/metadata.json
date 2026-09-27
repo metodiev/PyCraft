@@ -1,0 +1,30 @@
+{
+  "id": "databases-ecommerce-orm",
+  "title": "Project: E-commerce Order Engine",
+  "summary": "Build a transactional order engine: exact integer money, discount and tax composition, and an all-or-nothing checkout over SQLite.",
+  "difficulty": "advanced",
+  "track": "databases",
+  "module": "Projects",
+  "level": "senior",
+  "kind": "project",
+  "python_version": "3.12",
+  "time_limit_ms": 10000,
+  "memory_limit_mb": 256,
+  "points": 200,
+  "order_index": 10,
+  "skills": ["databases", "databases.transactions", "backend.service_design"],
+  "entry_file": "service.py",
+  "tags": ["sqlite", "transactions", "money", "idempotency", "inventory"],
+  "rubric": [
+    {
+      "label": "Correctness",
+      "weight": 70,
+      "description": "Every visible and hidden test passes: money arithmetic, discount order, tax rounding, atomic checkout and idempotency."
+    },
+    {
+      "label": "Integrity",
+      "weight": 30,
+      "description": "Stock can never go negative and a partially applied order can never be observed, even when a later item fails."
+    }
+  ]
+}
