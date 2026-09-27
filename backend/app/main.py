@@ -33,6 +33,7 @@ from app.execution.local_backend import LocalExecutionBackend
 from app.execution.models import ExecutionError
 from app.models import Challenge
 from app.services.challenges import ChallengeFormatError, ChallengeRepository
+from app.services.workers import WorkerPool
 
 logger = logging.getLogger(__name__)
 
@@ -147,10 +148,20 @@ async def lifespan(app: FastAPI):
     # A pre-injected backend (used by tests) takes precedence over the
     # configured one, so the suite can exercise the API without a sandbox.
     backend = getattr(app.state, "execution_backend", None) or build_execution_backend(settings)
+    worker_pool: WorkerPool | None = None
     try:
         await backend.start()
         app.state.execution_backend = backend
         logger.info("Execution backend: %s", backend.name)
+
+        # Drain the submission queue in this process. Tests inject their own
+        # pool (or none) so they can drive execution deterministically.
+        if settings.run_workers_in_process and not getattr(app.state, "skip_workers", False):
+            worker_pool = getattr(app.state, "worker_pool", None) or WorkerPool(
+                settings, backend, repository
+            )
+            await worker_pool.start()
+            app.state.worker_pool = worker_pool
     except ExecutionError as exc:
         # Keep serving the catalogue and dashboard; only Run/Submit will fail.
         logger.error("Execution backend unavailable: %s", exc)
@@ -159,6 +170,8 @@ async def lifespan(app: FastAPI):
     try:
         yield
     finally:
+        if worker_pool is not None:
+            await worker_pool.stop()
         if getattr(app.state, "execution_backend", None) is not None:
             await app.state.execution_backend.stop()
         await dispose_engine()

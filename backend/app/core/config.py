@@ -112,6 +112,17 @@ class Settings(BaseSettings):
     # submission storm; the queue upstream is intentionally simple for the MVP.
     execution_concurrency: int = 4
 
+    # How many background workers drain the submission queue. Kept at or below
+    # ``execution_concurrency`` so workers are not simply queueing on the
+    # sandbox semaphore.
+    worker_concurrency: int = 2
+    # How long a worker's claim on a submission stays valid. Must comfortably
+    # exceed the longest sandbox run, or a slow submission gets executed twice.
+    worker_lease_seconds: int = 120
+    # Run the workers inside the API process. Disable when workers are deployed
+    # separately, so the API does not duplicate the work.
+    run_workers_in_process: bool = True
+
     # --- Defaults for challenges lacking explicit limits -----------------
     default_time_limit_ms: int = 5_000
     default_memory_limit_mb: int = 128

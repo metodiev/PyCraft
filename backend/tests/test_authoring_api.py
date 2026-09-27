@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 from httpx import AsyncClient
+from tests.conftest import submit_and_wait
 from tests.test_authoring import HIDDEN, VALID_DESCRIPTION, VALID_STARTER, VISIBLE
 
 TRACKS = "/api/v1/authoring/tracks"
@@ -150,12 +151,11 @@ async def test_published_challenge_accepts_a_submission(admin_client: AsyncClien
     """End to end: author it, then solve it."""
     await admin_client.post(PUBLISH, json=draft_body())
 
-    response = await admin_client.post(
-        "/api/v1/challenges/python-fundamentals-sum-two-numbers/submit",
-        json={"files": {"solution.py": "def add(a, b):\n    return a + b\n"}},
+    body = await submit_and_wait(
+        admin_client,
+        "python-fundamentals-sum-two-numbers",
+        {"solution.py": "def add(a, b):\n    return a + b\n"},
     )
-    assert response.status_code == 200
-    body = response.json()
     assert body["score"] == 100
     assert body["failed"] == 0
 

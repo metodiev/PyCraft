@@ -7,6 +7,7 @@ from app.models import ProgressStatus
 from app.services.roadmap import ROADMAP
 from app.services.skill_graph import build_graph
 from httpx import AsyncClient
+from tests.conftest import submit_and_wait
 
 CHALLENGE = "python-fundamentals-hello-world"
 SOLUTION = {"solution.py": "def greet(name):\n    return f'Hello, {name}!'\n"}
@@ -258,7 +259,7 @@ async def test_solving_a_challenge_moves_its_skill(client: AsyncClient) -> None:
     # The fixture challenge declares python.basics, so it has content.
     assert basics_before["challenges_total"] == 1
 
-    await client.post(f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": SOLUTION})
+    await submit_and_wait(client, CHALLENGE, SOLUTION)
 
     after = (await client.get(GRAPH)).json()
     basics_after = next(n for n in after["nodes"] if n["id"] == "python.basics")
@@ -275,7 +276,7 @@ async def test_progress_is_per_learner(
     """One learner's mastery must not appear in another's graph."""
     from tests.conftest import register_account
 
-    await client.post(f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": SOLUTION})
+    await submit_and_wait(client, CHALLENGE, SOLUTION)
 
     other = await register_account(second_client, email="other@example.com")
     second_client.headers["Authorization"] = f"Bearer {other.access_token}"

@@ -51,29 +51,59 @@ Lambda, or a dedicated runner fleet can be added without touching the API layer.
 
 ## Request lifecycle: submitting a solution
 
+Run and Submit are **asynchronous**. The request that starts one returns as soon
+as the work is durable; the sandbox runs afterwards, and the caller polls.
+
 1. **Frontend** posts `{files: {"solution.py": "..."}}` to
    `/api/v1/challenges/{id}/submit`.
 2. **Pydantic** validates the payload — filename shape, per-file and total size
    limits, `.py` extension, no path separators ([`app/schemas/__init__.py`](../backend/app/schemas/__init__.py)).
-3. **`SubmissionService`** loads the challenge from the in-memory repository,
-   builds an `ExecutionPayload`, and persists a `Submission` row with status
-   `queued`.
-4. **Limits are clamped** to the platform ceiling. A challenge may lower the
+3. **`SubmissionService.enqueue`** loads the challenge from the in-memory
+   repository and persists a `Submission` row with status `queued`. Nothing
+   executes yet, so the request is **not** held open by a container run.
+4. **The response** is `202 Accepted` with a `submission_id` and a
+   `submission_url`. The client polls `GET /api/v1/submissions/{id}` until
+   `done` is true.
+5. **A worker claims** the row — an atomic conditional `UPDATE` that takes the
+   oldest runnable submission and stamps a lease. Two workers cannot claim one
+   row, and a worker that dies mid-run loses its lease so the work is retried
+   ([`app/services/queue.py`](../backend/app/services/queue.py)).
+6. **Limits are clamped** to the platform ceiling. A challenge may lower the
    time/memory budget but never raise it.
-5. **`DockerExecutionBackend`** acquires a concurrency semaphore, writes the
+7. **`DockerExecutionBackend`** acquires a concurrency semaphore, writes the
    payload JSON into a dedicated volume via a short-lived helper container, then
    starts a hardened sandbox container that mounts that volume read-only.
-6. **Inside the container**, `entrypoint.py` materialises the files into a
+8. **Inside the container**, `entrypoint.py` materialises the files into a
    scratch directory, runs pytest as a subprocess with the challenge's own
    timeout, and prints a JSON report between marker lines.
-7. **Backend parses** the report (ignoring anything the learner printed),
+9. **Backend parses** the report (ignoring anything the learner printed),
    normalises failures, and marks which tests were hidden.
-8. **Scoring** produces a weighted score; hidden tests count for more than
-   visible ones so iterating on visible tests alone cannot fake mastery.
-9. **Progress** is updated — completion, XP, skill mastery — but only for
-   submissions that actually pass, and only once per challenge.
-10. **The response** returns per-test results. For Submit, raw process stdout is
-    deliberately withheld so the hidden suite cannot be read back.
+10. **Scoring** produces a weighted score; hidden tests count for more than
+    visible ones so iterating on visible tests alone cannot fake mastery.
+11. **Progress** is updated — completion, XP, skill mastery — but only for
+    submissions that actually pass, and only once per challenge. Because this
+    happens in the worker, a submission that never runs cannot advance anyone's
+    progress.
+12. **A later poll** rebuilds the result from the stored row, so asking again
+    long after the worker is gone returns the same answer. For Submit, raw
+    process stdout is deliberately withheld so the hidden suite cannot be read
+    back.
+
+### Why a durable queue rather than Redis
+
+Submissions are rows, not messages: a learner's work has to survive a restart,
+a crash or a deploy, and the database is already the source of truth for
+progress. An in-memory or Redis-only queue would add a second thing to keep
+consistent and a new piece of infrastructure to run, for no gain at this scale —
+the claim, the lease and the retry budget are all a few dozen lines of SQL.
+Redis becomes worthwhile when workers move to separate machines and need a
+wake-up signal; the enqueue path would not change.
+
+The API process runs the workers by default, so a single container keeps working
+(`PYCRAFT_RUN_WORKERS_IN_PROCESS=false` disables that when workers are deployed
+separately). `GET /api/v1/queue` reports depth, worker count and how many
+submissions have been processed, which is the smoke test that the pool is
+draining rather than merely running.
 
 ## Why `put_archive` stages into a volume
 

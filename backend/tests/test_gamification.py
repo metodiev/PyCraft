@@ -19,6 +19,7 @@ from app.services.streaks import (
     streak_is_alive,
 )
 from httpx import AsyncClient
+from tests.conftest import submit_and_wait
 
 CHALLENGE = "python-fundamentals-hello-world"
 SOLUTION = {"solution.py": "def greet(name):\n    return f'Hello, {name}!'\n"}
@@ -227,7 +228,7 @@ async def test_new_learner_has_nothing_unlocked(client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_solving_unlocks_first_steps(client: AsyncClient) -> None:
-    await client.post(f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": SOLUTION})
+    await submit_and_wait(client, CHALLENGE, SOLUTION)
 
     body = (await client.get(ACHIEVEMENTS_URL)).json()
     keys = {a["key"] for a in body["earned"]}
@@ -237,10 +238,7 @@ async def test_solving_unlocks_first_steps(client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_submit_reports_newly_unlocked_achievements(client: AsyncClient) -> None:
-    response = await client.post(
-        f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": SOLUTION}
-    )
-    body = response.json()
+    body = await submit_and_wait(client, CHALLENGE, SOLUTION)
 
     assert "newly_unlocked" in body
     keys = {a["key"] for a in body["newly_unlocked"]}
@@ -254,10 +252,7 @@ async def test_submit_reports_newly_unlocked_achievements(client: AsyncClient) -
 
 @pytest.mark.asyncio
 async def test_failing_submission_unlocks_nothing(client: AsyncClient) -> None:
-    response = await client.post(
-        f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": BROKEN}
-    )
-    body = response.json()
+    body = await submit_and_wait(client, CHALLENGE, BROKEN)
 
     assert body["newly_unlocked"] == []
     # And no XP, from challenges or achievements.
@@ -267,17 +262,17 @@ async def test_failing_submission_unlocks_nothing(client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_achievements_unlock_only_once(client: AsyncClient) -> None:
-    first = await client.post(f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": SOLUTION})
-    second = await client.post(f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": SOLUTION})
+    first = await submit_and_wait(client, CHALLENGE, SOLUTION)
+    second = await submit_and_wait(client, CHALLENGE, SOLUTION)
 
-    assert len(first.json()["newly_unlocked"]) >= 1
+    assert len(first["newly_unlocked"]) >= 1
     # The second solve unlocks nothing new.
-    assert second.json()["newly_unlocked"] == []
+    assert second["newly_unlocked"] == []
 
 
 @pytest.mark.asyncio
 async def test_locked_achievements_expose_progress(client: AsyncClient) -> None:
-    await client.post(f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": SOLUTION})
+    await submit_and_wait(client, CHALLENGE, SOLUTION)
 
     body = (await client.get(ACHIEVEMENTS_URL)).json()
     five_solved = next((a for a in body["locked"] if a["key"] == "five-solved"), None)
@@ -291,7 +286,7 @@ async def test_streak_endpoint_reports_activity(client: AsyncClient) -> None:
     assert before["current"] == 0
     assert before["active_today"] is False
 
-    await client.post(f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": SOLUTION})
+    await submit_and_wait(client, CHALLENGE, SOLUTION)
 
     after = (await client.get(STREAK_URL)).json()
     assert after["current"] == 1
@@ -303,7 +298,7 @@ async def test_streak_endpoint_reports_activity(client: AsyncClient) -> None:
 @pytest.mark.asyncio
 async def test_failed_submission_does_not_start_a_streak(client: AsyncClient) -> None:
     """Streaks reward solving, not merely attempting."""
-    await client.post(f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": BROKEN})
+    await submit_and_wait(client, CHALLENGE, BROKEN)
 
     streak = (await client.get(STREAK_URL)).json()
     assert streak["current"] == 0
@@ -317,7 +312,7 @@ async def test_leaderboard_requires_no_authentication(anon_client: AsyncClient) 
 
 @pytest.mark.asyncio
 async def test_leaderboard_lists_solvers(client: AsyncClient, account) -> None:
-    await client.post(f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": SOLUTION})
+    await submit_and_wait(client, CHALLENGE, SOLUTION)
 
     entries = (await client.get(LEADERBOARD_URL)).json()
     assert len(entries) >= 1
@@ -337,7 +332,7 @@ async def test_leaderboard_omits_users_with_no_xp(anon_client: AsyncClient, clie
 
 @pytest.mark.asyncio
 async def test_leaderboard_does_not_expose_emails(client: AsyncClient) -> None:
-    await client.post(f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": SOLUTION})
+    await submit_and_wait(client, CHALLENGE, SOLUTION)
 
     response = await client.get(LEADERBOARD_URL)
     assert "@" not in response.text
@@ -350,7 +345,7 @@ async def test_my_rank_requires_authentication(anon_client: AsyncClient) -> None
 
 @pytest.mark.asyncio
 async def test_my_rank_returns_position(client: AsyncClient) -> None:
-    await client.post(f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": SOLUTION})
+    await submit_and_wait(client, CHALLENGE, SOLUTION)
 
     entry = (await client.get(f"{LEADERBOARD_URL}/me")).json()
     assert entry["rank"] == 1
@@ -385,7 +380,7 @@ async def test_leaderboard_orders_by_descending_xp(
 
     # "Leader" solves the challenge and gains XP.
     anon_client.headers["Authorization"] = f"Bearer {leader.access_token}"
-    await anon_client.post(f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": SOLUTION})
+    await submit_and_wait(anon_client, CHALLENGE, SOLUTION)
 
     entries = (await anon_client.get(LEADERBOARD_URL)).json()
 
@@ -401,7 +396,7 @@ async def test_snapshot_counts_completed_challenges(client: AsyncClient, account
 
     import app.db.session as db_session
 
-    await client.post(f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": SOLUTION})
+    await submit_and_wait(client, CHALLENGE, SOLUTION)
 
     async with db_session.get_session_factory()() as session:
         # `account.user_id` is a string from JSON; the column is a UUID type.

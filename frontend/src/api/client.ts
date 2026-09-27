@@ -302,6 +302,7 @@ export interface SubmitResult {
   dimensions: ScoringDimension[];
   summary: string;
   progress: ProgressSummary | null;
+  newly_unlocked: UnlockedAchievement[];
 }
 
 export interface RuntimeInfo {
@@ -445,6 +446,84 @@ async function readErrorMessage(response: Response): Promise<string> {
   return `Request failed with status ${response.status}`;
 }
 
+// --- submission queue -----------------------------------------------------
+
+export interface QueuedResponse {
+  submission_id: string;
+  status: string;
+  submission_url: string;
+  queue_depth: number;
+}
+
+/** A submission's state while it is queued or running. */
+export interface SubmissionStatus {
+  submission_id: string;
+  kind: string;
+  status: string;
+  done: boolean;
+  challenge_id: string;
+  created_at: string;
+  finished_at: string | null;
+  error_message: string | null;
+  stdout: string;
+  stderr: string;
+  exit_code: number | null;
+  score: number | null;
+  passed: number;
+  failed: number;
+  total_tests: number;
+  results: TestResult[];
+  dimensions: ScoringDimension[];
+  summary: string;
+  progress: ProgressSummary | null;
+  newly_unlocked: UnlockedAchievement[];
+  execution_time_ms: number | null;
+  memory_used_mb: number | null;
+}
+
+interface UnlockedAchievement {
+  key: string;
+  name: string;
+  description: string;
+  tier: string;
+  bonus_xp: number;
+}
+
+/** How often to ask whether a queued submission has finished. */
+const POLL_INTERVAL_MS = 400;
+/** How long to keep asking before giving up, well past any sandbox time limit. */
+const POLL_TIMEOUT_MS = 120_000;
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+/**
+ * Poll a submission until it reaches a terminal state.
+ *
+ * Run and Submit are asynchronous: the POST returns as soon as the work is
+ * queued. Polling here keeps every caller's code unchanged — they still await a
+ * finished result — while the request that started it is no longer held open
+ * for the whole sandbox run.
+ */
+async function awaitSubmission(
+  submissionId: string,
+  onProgress?: (state: SubmissionStatus) => void,
+): Promise<SubmissionStatus> {
+  const deadline = Date.now() + POLL_TIMEOUT_MS;
+  for (;;) {
+    const state = await request<SubmissionStatus>(
+      `/submissions/${encodeURIComponent(submissionId)}`,
+    );
+    if (state.done) return state;
+    onProgress?.(state);
+    if (Date.now() > deadline) {
+      throw new ApiError("The sandbox did not finish in time. Please try again.", 504);
+    }
+    await delay(POLL_INTERVAL_MS);
+  }
+}
+
 export const api = {
   // --- auth --------------------------------------------------------------
   getAuthConfig: (): Promise<AuthConfig> => request<AuthConfig>("/auth/config"),
@@ -519,17 +598,53 @@ export const api = {
 
   getProgress: (): Promise<ProgressSummary> => request<ProgressSummary>("/progress"),
 
-  run: (challengeId: string, files: Record<string, string>): Promise<RunResult> =>
-    request<RunResult>(`/challenges/${encodeURIComponent(challengeId)}/run`, {
-      method: "POST",
-      body: JSON.stringify({ files }),
-    }),
+  run: async (
+    challengeId: string,
+    files: Record<string, string>,
+    onProgress?: (state: SubmissionStatus) => void,
+  ): Promise<RunResult> => {
+    const queued = await request<QueuedResponse>(
+      `/challenges/${encodeURIComponent(challengeId)}/run`,
+      { method: "POST", body: JSON.stringify({ files }) },
+    );
+    const state = await awaitSubmission(queued.submission_id, onProgress);
+    return {
+      submission_id: state.submission_id,
+      status: state.status,
+      stdout: state.stdout,
+      stderr: state.stderr,
+      exit_code: state.exit_code,
+      execution_time_ms: state.execution_time_ms ?? 0,
+      memory_used_mb: state.memory_used_mb ?? 0,
+    };
+  },
 
-  submit: (challengeId: string, files: Record<string, string>): Promise<SubmitResult> =>
-    request<SubmitResult>(`/challenges/${encodeURIComponent(challengeId)}/submit`, {
-      method: "POST",
-      body: JSON.stringify({ files }),
-    }),
+  submit: async (
+    challengeId: string,
+    files: Record<string, string>,
+    onProgress?: (state: SubmissionStatus) => void,
+  ): Promise<SubmitResult> => {
+    const queued = await request<QueuedResponse>(
+      `/challenges/${encodeURIComponent(challengeId)}/submit`,
+      { method: "POST", body: JSON.stringify({ files }) },
+    );
+    const state = await awaitSubmission(queued.submission_id, onProgress);
+    return {
+      submission_id: state.submission_id,
+      status: state.status,
+      score: state.score ?? 0,
+      passed: state.passed,
+      failed: state.failed,
+      total_tests: state.total_tests,
+      execution_time_ms: state.execution_time_ms ?? 0,
+      memory_used_mb: state.memory_used_mb ?? 0,
+      results: state.results,
+      dimensions: state.dimensions,
+      summary: state.summary,
+      progress: state.progress,
+      newly_unlocked: state.newly_unlocked,
+    };
+  },
 
   // --- authoring ---------------------------------------------------------
   getAuthoringAccess: (): Promise<AuthoringAccess> => request<AuthoringAccess>("/authoring/access"),

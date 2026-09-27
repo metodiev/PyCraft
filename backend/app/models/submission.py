@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import enum
 import uuid
+from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import JSON, Enum, ForeignKey, Integer, Text, Uuid
+from sqlalchemy import JSON, DateTime, Enum, ForeignKey, Integer, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, TimestampMixin
@@ -25,9 +26,15 @@ class SubmissionKind(enum.StrEnum):
 
 class SubmissionStatus(enum.StrEnum):
     QUEUED = "queued"
+    RUNNING = "running"  # claimed by a worker, executing in the sandbox
     COMPLETED = "completed"
     FAILED = "failed"  # infrastructure/runner failure
     REJECTED = "rejected"  # refused by policy (bad payload, limits exceeded)
+
+    @property
+    def is_terminal(self) -> bool:
+        """Whether the submission will not change again."""
+        return self in {SubmissionStatus.COMPLETED, SubmissionStatus.FAILED, SubmissionStatus.REJECTED}
 
 
 class Submission(Base, TimestampMixin):
@@ -62,9 +69,26 @@ class Submission(Base, TimestampMixin):
     # Structured per-test results: [{name, status, duration_ms, message, hidden}].
     results: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list)
     error_message: Mapped[str | None] = mapped_column(Text, default=None)
+    # Achievements this submission unlocked. Stored rather than recomputed,
+    # because unlocking is a side effect of processing and a later poll has no
+    # way to know which ones this submission was responsible for.
+    unlocked: Mapped[list[dict[str, Any]]] = mapped_column(JSON, default=list)
 
     user: Mapped[User] = relationship(back_populates="submissions")
     challenge: Mapped[Challenge] = relationship(back_populates="submissions")
+
+    # --- queue bookkeeping -------------------------------------------------
+    # How many times a worker has claimed this submission. A submission that
+    # keeps crashing its worker is abandoned after ``max_attempts`` so one bad
+    # payload cannot occupy the queue forever.
+    attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    # When a worker took it, and when that claim goes stale. A worker that dies
+    # mid-run leaves ``claimed_at`` set; once the lease expires another worker
+    # reclaims the row, which is what makes the queue crash-tolerant.
+    claimed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    # When the worker finished, so the API can report a duration.
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
 
     @property
     def is_graded(self) -> bool:

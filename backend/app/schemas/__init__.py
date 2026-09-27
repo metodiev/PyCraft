@@ -154,6 +154,21 @@ class TestFileInfo(BaseModel):
     source: str
 
 
+class QueuedResponse(BaseModel):
+    """Acknowledgement that a submission is queued for execution.
+
+    Returned with ``202 Accepted``. The caller polls ``submission_url`` until
+    ``status`` is terminal; nothing has executed yet when this is sent.
+    """
+
+    submission_id: uuid.UUID
+    status: str
+    #: Where to poll. Sent so a client never has to construct the path itself.
+    submission_url: str
+    #: Queue position at the time of the request, for an honest "you are Nth".
+    queue_depth: int = 0
+
+
 class ProgressSummary(BaseModel):
     xp: int
     level_id: str
@@ -164,6 +179,43 @@ class ProgressSummary(BaseModel):
     completed_challenges: int
     total_challenges: int
     completion_pct: int
+
+
+class SubmissionStatusResponse(BaseModel):
+    """The state of one submission, for polling.
+
+    ``RunResponse``/``SubmitResponse`` fields are absent until the submission
+    reaches a terminal status, so a poller can tell "still working" from
+    "finished" by checking ``status`` rather than by looking for missing keys.
+    """
+
+    submission_id: uuid.UUID
+    kind: str
+    status: str
+    done: bool
+    challenge_id: str
+    created_at: datetime
+    finished_at: datetime | None = None
+    error_message: str | None = None
+
+    # Run detail.
+    stdout: str = ""
+    stderr: str = ""
+    exit_code: int | None = None
+
+    # Submit detail, populated only once grading has run.
+    score: int | None = None
+    passed: int = 0
+    failed: int = 0
+    total_tests: int = 0
+    results: list[TestResultSchema] = Field(default_factory=list)
+    dimensions: list[dict] = Field(default_factory=list)
+    summary: str = ""
+    progress: ProgressSummary | None = None
+    newly_unlocked: list[dict] = Field(default_factory=list)
+
+    execution_time_ms: int | None = None
+    memory_used_mb: float | None = None
 
 
 class SkillBar(BaseModel):

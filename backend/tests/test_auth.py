@@ -13,7 +13,7 @@ from app.core.security import (
     verify_password,
 )
 from httpx import AsyncClient
-from tests.conftest import TEST_PASSWORD, register_account
+from tests.conftest import TEST_PASSWORD, register_account, submit_and_wait
 
 REGISTER = "/api/v1/auth/register"
 LOGIN = "/api/v1/auth/login"
@@ -602,10 +602,11 @@ async def test_progress_is_per_user(
 ) -> None:
     """One learner's progress must not appear in another's dashboard."""
     headers = {"Authorization": f"Bearer {account.access_token}"}
-    await anon_client.post(
-        "/api/v1/challenges/python-fundamentals-hello-world/submit",
+    await submit_and_wait(
+        anon_client,
+        "python-fundamentals-hello-world",
+        {"solution.py": "def greet(name):\n    return f'Hello, {name}!'\n"},
         headers=headers,
-        json={"files": {"solution.py": "def greet(name):\n    return f'Hello, {name}!'\n"}},
     )
 
     # The learner sees progress.

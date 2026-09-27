@@ -8,6 +8,7 @@ deliberately contain no Docker-specific concepts.
 from __future__ import annotations
 
 import enum
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -105,6 +106,26 @@ class TestResult:
             "message": self.message,
             "hidden": self.hidden,
         }
+
+    @classmethod
+    def from_dict(cls, raw: Mapping[str, Any]) -> TestResult:
+        """Rebuild a result stored in the database.
+
+        Storage is JSON, so every field arrives as a primitive and an unknown
+        status must not crash a poll: an unreadable entry degrades to ``ERROR``
+        rather than raising, because this runs on the read path.
+        """
+        try:
+            status = TestOutcome(str(raw.get("status", "error")))
+        except ValueError:
+            status = TestOutcome.ERROR
+        return cls(
+            name=str(raw.get("name", "")),
+            status=status,
+            duration_ms=int(raw.get("duration_ms", 0) or 0),
+            message=str(raw.get("message", "")),
+            hidden=bool(raw.get("hidden", False)),
+        )
 
 
 @dataclass(slots=True)

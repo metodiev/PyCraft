@@ -54,6 +54,7 @@ Full instructions: [docs/development.md](docs/development.md).
 | Challenge catalogue with visible/hidden test split | ✅ |
 | Monaco editor workspace with Run and Submit | ✅ |
 | Docker-isolated Python 3.12 execution | ✅ |
+| Queued submissions: durable job queue with workers and polling | ✅ |
 | Resource limits: time, memory, CPU, PIDs, output | ✅ |
 | Multi-dimensional scoring | ✅ |
 | Dashboard: level, skills, roadmap, recent submissions | ✅ |

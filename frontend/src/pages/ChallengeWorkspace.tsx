@@ -11,7 +11,12 @@ import { Link, useParams } from "react-router-dom";
 import Editor from "@monaco-editor/react";
 import "../lib/monaco-loader";
 import { api, ApiError } from "../api/client";
-import type { ChallengeDetail, RunResult, SubmitResult } from "../api/client";
+import type {
+  ChallengeDetail,
+  RunResult,
+  SubmissionStatus,
+  SubmitResult,
+} from "../api/client";
 import { Badge, Button, DifficultyBadge, Notice, Skeleton } from "../components";
 import { useApi } from "../hooks/useApi";
 import { Markdown } from "../components/Markdown";
@@ -57,6 +62,7 @@ export function ChallengeWorkspace() {
   const [runResult, setRunResult] = useState<RunResult | null>(null);
   const [submitResult, setSubmitResult] = useState<SubmitResult | null>(null);
   const [grading, setGrading] = useState<"run" | "submit" | null>(null);
+  const [queuedState, setQueuedState] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const editorRef = useRef<unknown>(null);
 
@@ -108,20 +114,26 @@ export function ChallengeWorkspace() {
     async (kind: "run" | "submit") => {
       setGrading(kind);
       setActionError(null);
+      setQueuedState(null);
       try {
         // Every editable file is submitted: a project's modules must travel
         // together, and an untouched helper has to keep resolving.
         const files = { ...buffers };
         if (Object.keys(files).length === 0) files[entryFile] = "";
+        // The request only queues the work; the client polls until it finishes,
+        // reporting the transition so the dock can show "queued" rather than a
+        // bare spinner while a worker picks it up.
+        const onProgress = (state: SubmissionStatus) => setQueuedState(state.status);
         if (kind === "run") {
-          setRunResult(await api.run(challengeId, files));
+          setRunResult(await api.run(challengeId, files, onProgress));
         } else {
-          setSubmitResult(await api.submit(challengeId, files));
+          setSubmitResult(await api.submit(challengeId, files, onProgress));
         }
       } catch (cause) {
         setActionError(cause instanceof ApiError ? cause.message : "Execution failed");
       } finally {
         setGrading(null);
+        setQueuedState(null);
       }
     },
     [challengeId, entryFile, buffers],
@@ -303,7 +315,12 @@ export function ChallengeWorkspace() {
 
       <section className="results-dock" aria-label="Results" aria-live="polite">
         {actionError !== null && <Notice tone="danger">{actionError}</Notice>}
-        <ResultsPanel runResult={runResult} submitResult={submitResult} grading={grading} />
+        <ResultsPanel
+          runResult={runResult}
+          submitResult={submitResult}
+          grading={grading}
+          queuedState={queuedState}
+        />
       </section>
     </div>
   );
@@ -313,13 +330,22 @@ function ResultsPanel({
   runResult,
   submitResult,
   grading,
+  queuedState,
 }: {
   runResult: RunResult | null;
   submitResult: SubmitResult | null;
   grading: "run" | "submit" | null;
+  queuedState: string | null;
 }) {
   if (grading !== null) {
-    return <p className="dock-idle">Executing in the sandbox…</p>;
+    // Say which stage it is in. "Queued" means a worker has not picked it up
+    // yet, which is useful to know when the platform is busy.
+    const phase = queuedState === "running" ? "Executing in the sandbox…" : "Queued for execution…";
+    return (
+      <p className="dock-idle" aria-live="polite">
+        {phase}
+      </p>
+    );
   }
 
   if (submitResult !== null) {

@@ -100,29 +100,59 @@ Validation (`422` on failure):
 
 ### `POST /challenges/{id}/run`
 
-Experimental run against **visible tests only**. Returns raw output for
-debugging; no score, no progress change.
+Queue an experimental run against the **visible tests only**. Returns `202
+Accepted` as soon as the work is durable — the sandbox runs afterwards, so this
+request is never held open for a container.
 
 ```json
 {
   "submission_id": "d2466afb-449b-43f5-9fa5-7464a06a834f",
+  "status": "queued",
+  "submission_url": "/api/v1/submissions/d2466afb-449b-43f5-9fa5-7464a06a834f",
+  "queue_depth": 3
+}
+```
+
+Poll `submission_url` until `done` is true. A finished Run carries the raw
+output for debugging; there is no score and no progress change.
+
+### `GET /submissions/{id}`
+
+The state of one submission, and its result once it finishes. Poll this after
+either POST.
+
+```json
+{
+  "submission_id": "d2466afb-449b-43f5-9fa5-7464a06a834f",
+  "kind": "run",
   "status": "completed",
+  "done": true,
   "stdout": "... 3 passed in 0.01s\n",
   "stderr": "",
   "exit_code": 0,
+  "score": null,
   "execution_time_ms": 501,
   "memory_used_mb": 33.5
 }
 ```
 
+While `done` is false the status is `queued` (waiting for a worker) or
+`running` (executing in a sandbox). A submission belonging to another learner
+returns `404`, not `403`, so the endpoint cannot be used to probe which ids
+exist. `error_message` explains a failure that was not the learner's fault — an
+unreachable daemon, or a submission abandoned after its retry budget.
+
 ### `POST /challenges/{id}/submit`
 
-Graded against the **complete suite** (visible + hidden).
+Queue a submission graded against the **complete suite** (visible + hidden).
+Returns `202 Accepted` exactly like Run; poll for this shape:
 
 ```json
 {
   "submission_id": "…",
+  "kind": "submit",
   "status": "completed",
+  "done": true,
   "score": 100,
   "passed": 8,
   "failed": 0,

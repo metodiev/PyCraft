@@ -26,7 +26,7 @@ from app.execution.models import (
 )
 from app.main import create_app
 from fastapi import FastAPI
-from httpx import ASGITransport, AsyncClient
+from httpx import ASGITransport, AsyncClient, Response
 
 # A valid password under the configured policy.
 TEST_PASSWORD = "PyCraft-Test-1234"
@@ -176,7 +176,70 @@ def app(settings: Settings, fake_backend: FakeExecutionBackend) -> FastAPI:
     application = create_app(settings)
     # Injected before startup; lifespan honours it over the configured backend.
     application.state.execution_backend = fake_backend
+    # Tests drain the queue explicitly (see ``drain``) so they never race a
+    # background worker and never depend on timing.
+    application.state.skip_workers = True
     return application
+
+
+async def drain(client: AsyncClient) -> int:
+    """Process every runnable submission through the real worker path.
+
+    Run and Submit return ``202`` immediately; this finishes the queued work so
+    a test can assert on the result without racing a background worker.
+    """
+    from app.services.workers import WorkerPool
+
+    application = client._app
+    pool = WorkerPool(
+        application.state.settings,
+        application.state.execution_backend,
+        application.state.challenges,
+    )
+    return await pool.run_until_idle()
+
+
+async def run_and_wait(client: AsyncClient, challenge_id: str, files: dict[str, str]) -> dict:
+    """POST a Run, drain the queue, and return the finished status body."""
+    response = await client.post(f"/api/v1/challenges/{challenge_id}/run", json={"files": files})
+    assert response.status_code == 202, response.text
+    submission_id = response.json()["submission_id"]
+    await drain(client)
+    polled = await client.get(f"/api/v1/submissions/{submission_id}")
+    assert polled.status_code == 200, polled.text
+    return polled.json()
+
+
+async def post_run(client: AsyncClient, challenge_id: str, files: dict) -> Response:
+    """POST a Run and hand back the raw response.
+
+    For cases that expect the request itself to be rejected, where there is
+    nothing to drain and the status code is the assertion.
+    """
+    return await client.post(f"/api/v1/challenges/{challenge_id}/run", json={"files": files})
+
+
+async def submit_and_wait(
+    client: AsyncClient,
+    challenge_id: str,
+    files: dict[str, str],
+    *,
+    headers: dict[str, str] | None = None,
+) -> dict:
+    """POST a Submit, drain the queue, and return the finished status body.
+
+    ``headers`` is for tests that carry their own identity on a client shared
+    with another account.
+    """
+    response = await client.post(
+        f"/api/v1/challenges/{challenge_id}/submit", json={"files": files}, headers=headers
+    )
+    assert response.status_code == 202, response.text
+    submission_id = response.json()["submission_id"]
+    await drain(client)
+    polled = await client.get(f"/api/v1/submissions/{submission_id}", headers=headers)
+    assert polled.status_code == 200, polled.text
+    return polled.json()
 
 
 class Account:
@@ -245,6 +308,7 @@ async def anon_client(running_app: FastAPI) -> AsyncIterator[AsyncClient]:
     async with AsyncClient(
         transport=ASGITransport(app=running_app), base_url="http://testserver"
     ) as http:
+        http._app = running_app
         yield http
 
 
@@ -259,6 +323,7 @@ async def second_client(running_app: FastAPI) -> AsyncIterator[AsyncClient]:
     async with AsyncClient(
         transport=ASGITransport(app=running_app), base_url="http://testserver"
     ) as http:
+        http._app = running_app
         yield http
 
 

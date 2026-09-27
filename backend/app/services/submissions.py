@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,6 +22,7 @@ from app.execution.models import (
 )
 from app.models import ChallengeProgress, ProgressStatus, SkillProgress, Submission, User
 from app.models.submission import SubmissionKind, SubmissionStatus
+from app.services import queue
 from app.services.challenges import ChallengeRepository, LoadedChallenge
 from app.services.roadmap import level_for_xp
 from app.services.scoring import score_submission
@@ -44,59 +46,109 @@ class SubmissionService:
         self._settings = settings
 
     # --- public API ------------------------------------------------------
-    async def run(self, user_id, challenge_id: str, files: dict[str, str]) -> tuple[Submission, ExecutionReport]:
-        return await self._execute(user_id, challenge_id, files, ExecutionMode.RUN)
+    async def enqueue(
+        self, user_id, challenge_id: str, files: dict[str, str], mode: ExecutionMode
+    ) -> Submission:
+        """Validate and persist a submission as runnable work.
 
-    async def submit(
-        self, user_id, challenge_id: str, files: dict[str, str]
-    ) -> tuple[Submission, ExecutionReport, dict]:
-        submission, report = await self._execute(user_id, challenge_id, files, ExecutionMode.SUBMIT)
-        scoring = self._grade(submission, report)
-        unlocked = await self._record_progress(user_id, submission, scoring)
-        progress = await self._progress_snapshot(user_id)
-        return submission, report, {
-            "scoring": scoring,
-            "progress": progress,
-            "achievements": unlocked,
-        }
-
-    # --- execution -------------------------------------------------------
-    async def _execute(
-        self,
-        user_id,
-        challenge_id: str,
-        files: dict[str, str],
-        mode: ExecutionMode,
-    ) -> tuple[Submission, ExecutionReport]:
+        Returns as soon as the row exists: nothing executes here, so the request
+        that called this is never held open by the sandbox.
+        """
         challenge = self._repository.get(challenge_id)
-
         submission = Submission(
             user_id=user_id,
             challenge_id=challenge.id,
             kind=SubmissionKind.SUBMIT if mode is ExecutionMode.SUBMIT else SubmissionKind.RUN,
-            status=SubmissionStatus.QUEUED,
             files=files,
         )
-        self._session.add(submission)
-        await self._session.flush()
+        await queue.enqueue(self._session, submission)
+        await self._session.commit()
+        return submission
 
-        payload = self._build_payload(challenge, files, mode)
+    async def process(self, submission_id) -> Submission:
+        """Execute a claimed submission and record the outcome.
+
+        This is the worker path. The row must already be claimed; the caller owns
+        the lease. Grading and progress are applied here, not at enqueue time, so
+        a submission that never runs cannot advance anyone's progress.
+        """
+        submission = await self._session.get(Submission, submission_id)
+        if submission is None:  # pragma: no cover - the worker only passes live ids
+            raise LookupError(f"submission {submission_id} disappeared")
+
+        challenge = self._repository.get(submission.challenge_id)
+        mode = (
+            ExecutionMode.SUBMIT
+            if submission.kind is SubmissionKind.SUBMIT
+            else ExecutionMode.RUN
+        )
+        payload = self._build_payload(challenge, submission.files, mode)
 
         try:
             report = await self._backend.execute(payload)
         except ExecutionError as exc:
+            # Infrastructure failure: record it on the row so a poller sees a
+            # terminal state rather than waiting forever for a worker that died.
             logger.warning("Execution failed for submission %s: %s", submission.id, exc)
             submission.status = SubmissionStatus.FAILED
             submission.error_message = str(exc)
+            submission.finished_at = _utcnow()
             await self._session.commit()
             raise
 
         self._apply_report(submission, report, mode)
-        await self._touch_progress(user_id, challenge, submission)
-        await self._session.commit()
-        await self._session.refresh(submission)
-        return submission, report
+        await self._touch_progress(submission.user_id, challenge, submission)
 
+        if mode is ExecutionMode.SUBMIT:
+            scoring = self._grade(submission, report)
+            unlocked = await self._record_progress(submission.user_id, submission, scoring)
+            from app.services.achievements import unlocked_out
+
+            # ``unlocked_out`` returns a datetime for the HTTP response; JSON
+            # storage needs it as text, so serialise before persisting.
+            submission.unlocked = [_jsonable(unlocked_out(entry)) for entry in unlocked]
+
+        submission.finished_at = _utcnow()
+        await self._session.commit()
+        return submission
+
+    async def outcome(self, submission: Submission) -> dict:
+        """The grading detail a caller needs to render a finished Submit.
+
+        Rebuilt from the stored row rather than cached, so polling a completed
+        submission returns the same answer long after the worker is gone.
+        """
+        challenge = self._repository.get(submission.challenge_id)
+        # Tests keep their own hidden flag from the original run, so the
+        # hidden/visible split survives the round trip through storage.
+        report = ExecutionReport(
+            status=ExecutionStatus(submission.status),
+            tests=[TestResult.from_dict(item) for item in (submission.results or [])],
+            stdout=submission.stdout,
+            stderr=submission.stderr,
+            exit_code=submission.exit_code,
+            execution_time_ms=submission.execution_time_ms or 0,
+            memory_used_mb=submission.memory_used_mb or 0.0,
+            error_message=submission.error_message,
+        )
+        hidden_tests = [t for t in report.tests if t.hidden]
+        hidden_total = len(hidden_tests)
+        hidden_passed = sum(1 for t in hidden_tests if t.status is TestOutcome.PASSED)
+
+        scoring = score_submission(
+            report,
+            difficulty=challenge.difficulty,
+            source="\n".join(submission.files.values()),
+            time_limit_ms=challenge.time_limit_ms,
+            hidden_total=hidden_total,
+            hidden_passed=hidden_passed,
+        )
+        return {"scoring": scoring, "report": report}
+
+    async def progress_snapshot(self, user_id) -> dict:
+        return await self._progress_snapshot(user_id)
+
+    # --- payload ---------------------------------------------------------
     def _build_payload(
         self, challenge: LoadedChallenge, files: dict[str, str], mode: ExecutionMode
     ) -> ExecutionPayload:
@@ -207,6 +259,11 @@ class SubmissionService:
 
         Scoring happens after this runs, so ``best_score`` is owned solely by
         :meth:`_record_progress`.
+
+        The row is flushed, not merely added: ``_record_progress`` looks it up by
+        ``(user_id, challenge_id)``, and an unflushed insert is invisible to that
+        query — which would make the second call insert a duplicate row and trip
+        the unique constraint.
         """
         progress = await self._get_progress(user_id, challenge.id)
         if progress is None:
@@ -219,6 +276,7 @@ class SubmissionService:
             )
             self._session.add(progress)
         progress.attempts += 1
+        await self._session.flush()
 
     async def _record_progress(self, user_id, submission: Submission, scoring) -> list:
         """Update completion, XP, skills, streak and achievements after a Submit.
@@ -359,13 +417,25 @@ def _map_status(report: ExecutionReport) -> SubmissionStatus:
     return SubmissionStatus.FAILED
 
 
-def _utcnow():
-    from datetime import UTC, datetime
+def _jsonable(value):
+    """Recursively convert a value into something a JSON column can store.
 
+    ``unlocked_out`` builds an HTTP-shaped payload that includes a ``datetime``;
+    the column is JSON, so dates must become ISO strings or the insert fails at
+    flush time.
+    """
+    if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, dict):
+        return {key: _jsonable(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_jsonable(item) for item in value]
+    return value
+
+
+def _utcnow():
     return datetime.now(UTC)
 
 
 def _today():
-    from datetime import UTC, datetime
-
     return datetime.now(UTC).date()

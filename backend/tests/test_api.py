@@ -4,7 +4,12 @@ from __future__ import annotations
 
 import pytest
 from httpx import AsyncClient
-from tests.conftest import FakeExecutionBackend
+from tests.conftest import (
+    FakeExecutionBackend,
+    post_run,
+    run_and_wait,
+    submit_and_wait,
+)
 
 CHALLENGE = "python-fundamentals-hello-world"
 SOLUTION = {"solution.py": "def greet(name):\n    return f'Hello, {name}!'\n"}
@@ -72,20 +77,19 @@ async def test_unknown_challenge_returns_404(anon_client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_run_returns_output_without_grading(client: AsyncClient) -> None:
-    response = await client.post(f"/api/v1/challenges/{CHALLENGE}/run", json={"files": SOLUTION})
-    assert response.status_code == 200
-    body = response.json()
+    body = await run_and_wait(client, CHALLENGE, SOLUTION)
 
     assert body["status"] == "completed"
     assert "hello from the fake sandbox" in body["stdout"]
     assert body["execution_time_ms"] == 120
-    # Run must not report a score.
-    assert "score" not in body
+    # Run reports no score: the field exists on every submission status, but is
+    # only populated once a graded Submit has been processed.
+    assert body["score"] is None
 
 
 @pytest.mark.asyncio
 async def test_run_excludes_hidden_tests(client: AsyncClient, fake_backend: FakeExecutionBackend) -> None:
-    await client.post(f"/api/v1/challenges/{CHALLENGE}/run", json={"files": SOLUTION})
+    await run_and_wait(client, CHALLENGE, SOLUTION)
 
     payload = fake_backend.calls[-1]
     assert payload.include_hidden is False
@@ -96,11 +100,7 @@ async def test_run_excludes_hidden_tests(client: AsyncClient, fake_backend: Fake
 async def test_submit_includes_hidden_tests_and_scores(
     client: AsyncClient, fake_backend: FakeExecutionBackend
 ) -> None:
-    response = await client.post(
-        f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": SOLUTION}
-    )
-    assert response.status_code == 200
-    body = response.json()
+    body = await submit_and_wait(client, CHALLENGE, SOLUTION)
 
     assert fake_backend.calls[-1].include_hidden is True
     assert body["score"] == 100
@@ -113,10 +113,7 @@ async def test_submit_includes_hidden_tests_and_scores(
 
 @pytest.mark.asyncio
 async def test_submit_marks_hidden_results_but_hides_their_messages(client: AsyncClient) -> None:
-    response = await client.post(
-        f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": BROKEN}
-    )
-    body = response.json()
+    body = await submit_and_wait(client, CHALLENGE, BROKEN)
 
     hidden = [r for r in body["results"] if r["hidden"]]
     visible = [r for r in body["results"] if not r["hidden"]]
@@ -127,21 +124,18 @@ async def test_submit_marks_hidden_results_but_hides_their_messages(client: Asyn
 
 @pytest.mark.asyncio
 async def test_failing_submission_scores_below_pass(client: AsyncClient) -> None:
-    response = await client.post(
-        f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": BROKEN}
-    )
-    body = response.json()
+    body = await submit_and_wait(client, CHALLENGE, BROKEN)
     assert body["failed"] > 0
     assert body["score"] < 60
 
 
 @pytest.mark.asyncio
 async def test_submit_withholds_raw_output_to_protect_hidden_tests(client: AsyncClient) -> None:
-    response = await client.post(
-        f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": SOLUTION}
-    )
-    # SubmitResponse has no stdout/stderr fields at all.
-    assert "stdout" not in response.json()
+    body = await submit_and_wait(client, CHALLENGE, SOLUTION)
+    # A graded submission never returns the learner's raw output, because the
+    # hidden suite runs beside their code and prints could leak it.
+    assert body["stdout"] == ""
+    assert body["stderr"] == ""
 
 
 @pytest.mark.asyncio
@@ -150,7 +144,7 @@ async def test_progress_updates_after_successful_submit(client: AsyncClient) -> 
     assert before["completed_challenges"] == 0
     assert before["xp"] == 0
 
-    await client.post(f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": SOLUTION})
+    await submit_and_wait(client, CHALLENGE, SOLUTION)
 
     after = (await client.get("/api/v1/progress")).json()
     assert after["completed_challenges"] == 1
@@ -164,10 +158,10 @@ async def test_progress_updates_after_successful_submit(client: AsyncClient) -> 
 
 @pytest.mark.asyncio
 async def test_xp_is_not_awarded_twice(client: AsyncClient) -> None:
-    await client.post(f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": SOLUTION})
+    await submit_and_wait(client, CHALLENGE, SOLUTION)
     after_first_pass = (await client.get("/api/v1/progress")).json()["xp"]
 
-    await client.post(f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": SOLUTION})
+    await submit_and_wait(client, CHALLENGE, SOLUTION)
 
     progress = (await client.get("/api/v1/progress")).json()
     assert progress["completed_challenges"] == 1
@@ -178,7 +172,7 @@ async def test_xp_is_not_awarded_twice(client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_failing_submit_does_not_complete_challenge(client: AsyncClient) -> None:
-    await client.post(f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": BROKEN})
+    await submit_and_wait(client, CHALLENGE, BROKEN)
 
     progress = (await client.get("/api/v1/progress")).json()
     assert progress["completed_challenges"] == 0
@@ -190,7 +184,7 @@ async def test_failing_submit_does_not_complete_challenge(client: AsyncClient) -
 
 @pytest.mark.asyncio
 async def test_challenge_list_reflects_completion(client: AsyncClient) -> None:
-    await client.post(f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": SOLUTION})
+    await submit_and_wait(client, CHALLENGE, SOLUTION)
 
     challenges = (await client.get("/api/v1/challenges")).json()
     assert challenges[0]["completed"] is True
@@ -199,7 +193,7 @@ async def test_challenge_list_reflects_completion(client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_dashboard_returns_full_payload(client: AsyncClient) -> None:
-    await client.post(f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": SOLUTION})
+    await submit_and_wait(client, CHALLENGE, SOLUTION)
     response = await client.get("/api/v1/dashboard")
     assert response.status_code == 200
     body = response.json()
@@ -221,7 +215,7 @@ async def test_dashboard_recommends_unstarted_challenge(client: AsyncClient) -> 
 
 @pytest.mark.asyncio
 async def test_dashboard_continue_points_at_started_challenge(client: AsyncClient) -> None:
-    await client.post(f"/api/v1/challenges/{CHALLENGE}/run", json={"files": SOLUTION})
+    await run_and_wait(client, CHALLENGE, SOLUTION)
 
     body = (await client.get("/api/v1/dashboard")).json()
     assert body["continue_challenge"]["id"] == CHALLENGE
@@ -231,7 +225,7 @@ async def test_dashboard_continue_points_at_started_challenge(client: AsyncClien
 
 @pytest.mark.asyncio
 async def test_skill_bars_track_progress(client: AsyncClient) -> None:
-    await client.post(f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": SOLUTION})
+    await submit_and_wait(client, CHALLENGE, SOLUTION)
 
     skills = (await client.get("/api/v1/skills")).json()
     basics = next(s for s in skills if s["skill"] == "python.basics")
@@ -257,7 +251,7 @@ async def test_roadmap_covers_every_stage(client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_roadmap_marks_completed_stage(client: AsyncClient) -> None:
-    await client.post(f"/api/v1/challenges/{CHALLENGE}/submit", json={"files": SOLUTION})
+    await submit_and_wait(client, CHALLENGE, SOLUTION)
 
     roadmap = (await client.get("/api/v1/roadmap")).json()
     assert roadmap[0]["progress_pct"] == 100
@@ -276,14 +270,14 @@ async def test_roadmap_marks_completed_stage(client: AsyncClient) -> None:
     ],
 )
 async def test_rejects_invalid_submissions(client: AsyncClient, files: dict) -> None:
-    response = await client.post(f"/api/v1/challenges/{CHALLENGE}/run", json={"files": files})
+    response = await post_run(client, CHALLENGE, files)
     assert response.status_code == 422
 
 
 @pytest.mark.asyncio
 async def test_rejects_oversized_file(client: AsyncClient) -> None:
     huge = {"solution.py": "x = 1\n" * 40_000}
-    response = await client.post(f"/api/v1/challenges/{CHALLENGE}/run", json={"files": huge})
+    response = await post_run(client, CHALLENGE, huge)
     assert response.status_code == 422
 
 
@@ -310,7 +304,7 @@ async def test_unknown_challenge_submit_returns_404(client: AsyncClient) -> None
 
 @pytest.mark.asyncio
 async def test_run_is_recorded_in_recent_submissions(client: AsyncClient) -> None:
-    await client.post(f"/api/v1/challenges/{CHALLENGE}/run", json={"files": SOLUTION})
+    await run_and_wait(client, CHALLENGE, SOLUTION)
 
     body = (await client.get("/api/v1/dashboard")).json()
     recent = body["recent_submissions"]
