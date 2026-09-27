@@ -16,24 +16,14 @@ MAX_DISPLAY_NAME = 80
 MAX_BIO = 600
 
 
-class PasswordPolicy(BaseModel):
-    """Base for models carrying a ``password`` field.
+def validate_password(password: str, *, min_length: int = MIN_PASSWORD_LENGTH) -> str:
+    """Check a password against the policy.
 
-    Kept as a plain base class so the same rules apply to registration, reset
-    and change-password without duplication.
+    ``min_length`` is injectable so the deployment's configured value is
+    honoured rather than a hard-coded constant.
     """
-
-    password: str = Field(min_length=1)
-
-    @field_validator("password")
-    @classmethod
-    def _check_password(cls, value: str) -> str:
-        return validate_password(value)
-
-
-def validate_password(password: str) -> str:
-    if len(password) < MIN_PASSWORD_LENGTH:
-        raise ValueError(f"Password must be at least {MIN_PASSWORD_LENGTH} characters")
+    if len(password) < min_length:
+        raise ValueError(f"Password must be at least {min_length} characters")
     if len(password.encode("utf-8")) > MAX_PASSWORD_BYTES:
         raise ValueError("Password is too long")
     if password.strip() == "":
@@ -43,6 +33,25 @@ def validate_password(password: str) -> str:
     if not any(char.isdigit() for char in password):
         raise ValueError("Password must contain at least one number")
     return password
+
+
+class PasswordPolicy(BaseModel):
+    """Base for models carrying a ``password`` field.
+
+    Kept as a plain base class so the same rules apply to registration, reset
+    and change-password without duplication.
+
+    The policy is validated against the *schema's* default length. The endpoint
+    re-checks against the live setting, because a deployment may raise the
+    configured minimum above it.
+    """
+
+    password: str = Field(min_length=1)
+
+    @field_validator("password")
+    @classmethod
+    def _check_password(cls, value: str) -> str:
+        return validate_password(value)
 
 
 class RegisterRequest(PasswordPolicy):

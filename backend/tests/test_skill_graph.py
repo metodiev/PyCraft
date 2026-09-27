@@ -308,3 +308,42 @@ async def test_graph_contains_every_roadmap_skill(client: AsyncClient) -> None:
 
     for stage in ROADMAP:
         assert stage.skill in node_ids
+
+
+# --- roadmap self-validation ---------------------------------------------
+def test_roadmap_requires_only_reference_real_stages() -> None:
+    """A stale `requires` id silently breaks the graph; import-time validation catches it."""
+    from app.services.roadmap import ROADMAP, STAGES_BY_ID
+
+    for stage in ROADMAP:
+        for required in stage.requires:
+            assert required in STAGES_BY_ID, f"{stage.id} requires unknown stage {required!r}"
+
+
+def test_roadmap_skill_ids_are_unique() -> None:
+    """The graph identifies nodes by skill, so duplicates would merge stages."""
+    from app.services.roadmap import ROADMAP
+
+    skills = [stage.skill for stage in ROADMAP]
+    assert len(skills) == len(set(skills))
+
+
+def test_roadmap_track_ids_are_unique() -> None:
+    from app.services.roadmap import ROADMAP
+
+    ids = [stage.id for stage in ROADMAP]
+    assert len(ids) == len(set(ids))
+
+
+def test_roadmap_dependencies_form_an_acyclic_chain() -> None:
+    """A cycle would make every node in it permanently locked."""
+    from app.services.roadmap import ROADMAP, STAGES_BY_ID
+
+    for stage in ROADMAP:
+        seen = {stage.id}
+        frontier = list(stage.requires)
+        while frontier:
+            current = frontier.pop()
+            assert current not in seen, f"cycle detected via {stage.id}"
+            seen.add(current)
+            frontier.extend(STAGES_BY_ID[current].requires)

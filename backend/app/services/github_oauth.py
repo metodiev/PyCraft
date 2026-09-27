@@ -117,8 +117,16 @@ def callback_url(settings: Settings) -> str:
 
 
 def frontend_error_url(settings: Settings, reason: str) -> str:
+    """Build the login URL a failed OAuth attempt returns to.
+
+    The reason is passed as a single ``error`` query parameter. It must be
+    percent-encoded once — encoding a nested ``reason=...`` string would make
+    the whole thing one opaque value and defeat ``URLSearchParams`` on the
+    frontend.
+    """
     base = settings.frontend_base_url.rstrip("/")
-    return f"{base}/login?error={urlencode({'reason': reason})}"
+    query = urlencode({"error": reason})
+    return f"{base}/login?{query}"
 
 
 # --- exchange ------------------------------------------------------------

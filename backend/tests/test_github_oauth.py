@@ -376,3 +376,25 @@ async def test_disabled_account_cannot_sign_in_via_github(anon_client) -> None:
                     avatar_url="",
                 ),
             )
+
+
+def test_error_url_is_single_encoded() -> None:
+    """The reason must arrive as one opaque parameter, not a nested query."""
+    from urllib.parse import parse_qs, urlparse
+
+    url = github_oauth.frontend_error_url(oauth_settings(), "Your sign-in link expired")
+    query = parse_qs(urlparse(url).query)
+
+    assert query["error"] == ["Your sign-in link expired"]
+    # No stray nested parameter that the frontend would have to unpack.
+    assert "reason" not in query
+
+
+def test_error_url_round_trips_special_characters() -> None:
+    import urllib.parse
+
+    message = "GitHub didn't provide a verified email (100% required)"
+    url = github_oauth.frontend_error_url(oauth_settings(), message)
+    query = urllib.parse.parse_qs(urllib.parse.urlparse(url).query)
+
+    assert query["error"] == [message]

@@ -31,6 +31,7 @@ from app.schemas.auth import (
     SessionInfo,
     TokenResponse,
     UserProfile,
+    validate_password,
 )
 from app.services.auth import (
     AccountDisabledError,
@@ -50,13 +51,14 @@ _RESET_ACK = "If that email address is registered, a reset link is on its way."
 @router.get("/config", response_model=AuthConfigResponse, summary="Sign-in options")
 async def auth_config(settings: SettingsDep) -> AuthConfigResponse:
     """Lets the UI hide options the deployment has disabled."""
-    from app.schemas.auth import MIN_PASSWORD_LENGTH
-
     return AuthConfigResponse(
         password_auth_enabled=settings.allow_password_auth,
         registration_enabled=settings.allow_registration,
         github_enabled=settings.github_oauth_enabled,
-        min_password_length=MIN_PASSWORD_LENGTH,
+        # Report the *configured* value: the frontend checklist is built from
+        # this, so a hard-coded constant would let the UI disagree with the
+        # server about what is acceptable.
+        min_password_length=settings.min_password_length,
     )
 
 
@@ -78,6 +80,7 @@ async def register(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Password sign-in is disabled. Use GitHub instead.",
         )
+    _enforce_password_policy(payload.password, settings)
     try:
         user, tokens = await auth.register(
             email=payload.email,
@@ -169,8 +172,12 @@ async def update_profile(
 
 @router.post("/me/password", response_model=MessageResponse, summary="Change password")
 async def change_password(
-    payload: ChangePasswordRequest, user: CurrentUser, auth: AuthServiceDep
+    payload: ChangePasswordRequest,
+    user: CurrentUser,
+    auth: AuthServiceDep,
+    settings: SettingsDep,
 ) -> MessageResponse:
+    _enforce_password_policy(payload.password, settings)
     try:
         await auth.change_password(
             user, current_password=payload.current_password, new_password=payload.password
@@ -239,8 +246,9 @@ async def request_password_reset(
     summary="Complete a password reset",
 )
 async def confirm_password_reset(
-    payload: PasswordResetConfirm, auth: AuthServiceDep
+    payload: PasswordResetConfirm, auth: AuthServiceDep, settings: SettingsDep
 ) -> MessageResponse:
+    _enforce_password_policy(payload.password, settings)
     try:
         await auth.reset_password(payload.token, payload.password)
     except (InvalidCredentialsError, AccountDisabledError) as exc:
@@ -279,6 +287,16 @@ async def set_user_role(
 
 
 # --- helpers -------------------------------------------------------------
+def _enforce_password_policy(password: str, settings: SettingsDep) -> None:
+    """Apply the deployment's configured minimum, not the schema default."""
+    try:
+        validate_password(password, min_length=settings.min_password_length)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)
+        ) from exc
+
+
 def _profile(user: User, providers: list[str]) -> UserProfile:
     return UserProfile(
         id=user.id,

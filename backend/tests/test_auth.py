@@ -616,3 +616,50 @@ async def test_progress_is_per_user(
     admin_progress = (await admin_client.get("/api/v1/progress")).json()
     assert admin_progress["completed_challenges"] == 0
     assert admin_progress["xp"] == 0
+
+
+# --- password policy -----------------------------------------------------
+@pytest.mark.asyncio
+async def test_auth_config_reports_the_configured_minimum_length(
+    anon_client: AsyncClient, settings
+) -> None:
+    """The UI builds its checklist from this value, so it must be the live setting."""
+    settings.min_password_length = 16
+
+    body = (await anon_client.get("/api/v1/auth/config")).json()
+    assert body["min_password_length"] == 16
+
+
+@pytest.mark.asyncio
+async def test_configured_minimum_length_is_enforced(anon_client: AsyncClient, settings) -> None:
+    """Raising the setting must actually reject shorter passwords."""
+    settings.min_password_length = 20
+    short = "Short-Pass-123"  # 14 characters: passes the schema default of 10
+
+    response = await anon_client.post(
+        REGISTER,
+        json={"email": "lenient@example.com", "password": short, "display_name": "L"},
+    )
+    assert response.status_code == 422
+    assert "20" in response.text
+
+
+@pytest.mark.asyncio
+async def test_default_length_still_applies(anon_client: AsyncClient) -> None:
+    """The schema default is the floor when the setting is lower."""
+    response = await anon_client.post(
+        REGISTER,
+        json={"email": "floor@example.com", "password": "Ab1", "display_name": "F"},
+    )
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_password_reset_enforces_the_length(anon_client: AsyncClient, settings) -> None:
+    settings.min_password_length = 20
+    response = await anon_client.post(
+        "/api/v1/auth/password/reset-confirm",
+        json={"token": "x" * 40, "password": "Short-Pass-123"},
+    )
+    # The policy runs before the token lookup, so this is a 422 either way.
+    assert response.status_code == 422
