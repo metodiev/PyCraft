@@ -2,6 +2,7 @@
 
 from app.api import (
     auth,
+    authoring,
     challenges,
     dashboard,
     gamification,
@@ -12,6 +13,7 @@ from app.api import (
 
 __all__ = [
     "auth",
+    "authoring",
     "challenges",
     "dashboard",
     "gamification",

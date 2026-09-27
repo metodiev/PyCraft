@@ -33,7 +33,7 @@ ROADMAP: tuple[RoadmapStage, ...] = (
         skill="python.fundamentals",
     ),
     RoadmapStage(
-        id="professional-python",
+        id="python-professional",
         title="Professional Python",
         description="Typing, dataclasses, decorators, generators, context managers and Python internals.",
         level="junior",
