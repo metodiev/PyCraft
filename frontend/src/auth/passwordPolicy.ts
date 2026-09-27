@@ -37,12 +37,12 @@ export function assessPassword(password: string, minLength: number): PasswordAss
     {
       id: "size",
       label: "Within the length limit",
-      met: new TextEncoder().encode(password).length <= MAX_PASSWORD_BYTES,
+      met: password.length > 0 && new TextEncoder().encode(password).length <= MAX_PASSWORD_BYTES,
     },
   ];
 
-  const met = requirements.filter((requirement) => requirement.met).length;
-  const satisfied = requirements.every((requirement) => requirement.met);
+  const metCount = requirements.filter((requirement) => requirement.met).length;
+  const satisfied = metCount === requirements.length;
 
   // Length beyond the minimum is the main driver of real-world strength, so it
   // dominates the score; character variety only breaks ties.

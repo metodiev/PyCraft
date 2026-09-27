@@ -327,10 +327,21 @@ async function performRefresh(): Promise<boolean> {
   }
 }
 
-/** Absolute-in-app URL that starts the GitHub OAuth browser redirect. */
-export function githubAuthorizeUrl(redirectTo = "/"): string {
-  return `${API_PREFIX}/auth/github/authorize?redirect_to=${encodeURIComponent(redirectTo)}`;
+/**
+ * Absolute-in-app URL that starts the GitHub OAuth browser redirect.
+ *
+ * The backend sends the browser to `redirect_to` after the exchange, appending
+ * the tokens as a URL fragment. That path must therefore be the callback page,
+ * which knows how to consume and strip the fragment; the user's real
+ * destination travels alongside it in `next`.
+ */
+export function githubAuthorizeUrl(next = "/"): string {
+  const callback = `${GITHUB_CALLBACK_PATH}?next=${encodeURIComponent(next)}`;
+  return `${API_PREFIX}/auth/github/authorize?redirect_to=${encodeURIComponent(callback)}`;
 }
+
+/** Route that reads the OAuth fragment. Shared so both sides agree on the path. */
+export const GITHUB_CALLBACK_PATH = "/auth/callback";
 
 /** Extract the most useful message from FastAPI's error shapes. */
 async function readErrorMessage(response: Response): Promise<string> {

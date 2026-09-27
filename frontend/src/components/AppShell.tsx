@@ -1,10 +1,11 @@
 /**
- * Application shell: header, navigation and route outlet.
+ * Application shell: header, navigation, account menu and route outlet.
  */
 
 import { NavLink, Outlet } from "react-router-dom";
 import { useApi } from "../hooks/useApi";
 import { api } from "../api/client";
+import { UserMenu } from "./UserMenu";
 import "./layout.css";
 
 export function AppShell() {
@@ -43,6 +44,8 @@ export function AppShell() {
             <span className="runtime-label muted">connecting…</span>
           )}
         </div>
+
+        <UserMenu />
       </header>
 
       <main className="app-main">

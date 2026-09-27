@@ -1,0 +1,49 @@
+/**
+ * Auth page styles layered on the shared form and auth-layout stylesheets.
+ */
+
+/* Spacing between stacked notices and the form they precede. */
+.auth-notice {
+  margin-bottom: var(--space-4);
+}
+
+/* Standalone heading inside a card when there is no form to introduce. */
+.auth-title {
+  font-size: var(--text-xl);
+}
+
+/* Full-width OAuth button rendered as a link, so the browser navigates. */
+.auth-oauth {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.auth-oauth:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.token-chip {
+  display: block;
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-inset);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  word-break: break-all;
+}

@@ -17,8 +17,9 @@ import {
   type ReactNode,
 } from "react";
 import { api, ApiError, refreshSession } from "../api/client";
-import type { TokenResponse, UserProfile } from "../api/client";
+import type { UserProfile } from "../api/client";
 import * as tokenStore from "./tokenStore";
+import type { TokenInput } from "./tokenStore";
 
 export type AuthStatus = "loading" | "authenticated" | "anonymous";
 
@@ -30,8 +31,11 @@ export interface AuthContextValue {
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   updateProfile: (patch: Parameters<typeof api.updateMe>[0]) => Promise<UserProfile>;
-  /** Adopt tokens handed over by an external flow (the GitHub redirect). */
-  acceptTokens: (tokens: TokenResponse) => Promise<void>;
+  /**
+   * Adopt tokens handed over by an external flow (the GitHub redirect), then
+   * load the profile. Throws when the tokens are not usable.
+   */
+  acceptTokens: (tokens: TokenInput) => Promise<UserProfile>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -50,10 +54,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const adopt = useCallback((tokens: TokenResponse) => {
+  const adopt = useCallback((tokens: TokenInput) => {
     tokenStore.set(tokens);
-    setUser(tokens.user);
-    setStatus("authenticated");
   }, []);
 
   const goAnonymous = useCallback(() => {
@@ -76,18 +78,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setStatus("authenticated");
       return;
     } catch (cause) {
-      // A dead network is not proof the session ended: keep the tokens so the
-      // user is not signed out by a transient blip.
-      if (cause instanceof ApiError && cause.status === 0) {
-        setUser(null);
-        setStatus("anonymous");
+      // Only a rejected credential justifies rotating or discarding the pair.
+      // A network failure or a 5xx is the server's problem, not proof that the
+      // session ended, so the tokens stay put for the next attempt.
+      if (!(cause instanceof ApiError) || (cause.status !== 401 && cause.status !== 403)) {
+        if (mounted.current) {
+          setUser(null);
+          setStatus("anonymous");
+        }
         return;
       }
     }
 
     const refreshed = await refreshSession();
     if (!refreshed) {
-      tokenStore.clear();
       if (mounted.current) {
         setUser(null);
         setStatus("anonymous");
@@ -113,16 +117,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void restore();
   }, [restore]);
 
+  /**
+   * React to credentials disappearing outside this provider — a request that
+   * cleared them after a rejected refresh, or a sign-out in another tab — so
+   * the UI never keeps showing a session that no longer exists.
+   */
+  useEffect(
+    () =>
+      tokenStore.subscribe(() => {
+        if (tokenStore.get() !== null) return;
+        if (!mounted.current) return;
+        setUser((current) => (current === null ? current : null));
+        setStatus((current) => (current === "anonymous" ? current : "anonymous"));
+      }),
+    [],
+  );
+
   const login = useCallback(
     async (email: string, password: string) => {
-      adopt(await api.login({ email, password }));
+      const tokens = await api.login({ email, password });
+      adopt(tokens);
+      setUser(tokens.user);
+      setStatus("authenticated");
     },
     [adopt],
   );
 
   const register = useCallback(
     async (email: string, password: string, displayName: string) => {
-      adopt(await api.register({ email, password, display_name: displayName }));
+      const tokens = await api.register({ email, password, display_name: displayName });
+      adopt(tokens);
+      setUser(tokens.user);
+      setStatus("authenticated");
     },
     [adopt],
   );
@@ -164,19 +190,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return profile;
   }, []);
 
-  const acceptTokens = useCallback(
-    async (tokens: TokenResponse) => {
-      adopt(tokens);
-      // The redirect carries the user already; a refresh keeps it authoritative.
-      try {
-        const profile = await api.getMe();
-        if (mounted.current) setUser(profile);
-      } catch {
-        // Keep the profile from the token response.
-      }
-    },
-    [adopt],
-  );
+  const acceptTokens = useCallback(async (tokens: TokenInput) => {
+    tokenStore.set(tokens);
+    const profile = await api.getMe();
+    if (mounted.current) {
+      setUser(profile);
+      setStatus("authenticated");
+    }
+    return profile;
+  }, []);
 
   const value = useMemo<AuthContextValue>(
     () => ({ user, status, login, register, logout, refreshUser, updateProfile, acceptTokens }),

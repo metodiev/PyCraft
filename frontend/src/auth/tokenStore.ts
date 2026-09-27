@@ -30,6 +30,27 @@ const STORAGE_KEY = "pycraft.auth";
 /** Mirror of the persisted pair, used when `localStorage` is unavailable. */
 let memory: StoredTokens | null = null;
 
+type Listener = () => void;
+const listeners = new Set<Listener>();
+
+/**
+ * Observe token changes.
+ *
+ * The provider uses this to notice that a request cleared the pair — a revoked
+ * session, or a sign-out in another tab — and drop the user to anonymous state
+ * instead of leaving a shell that can no longer load anything.
+ */
+export function subscribe(listener: Listener): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+function notify(): void {
+  for (const listener of listeners) listener();
+}
+
 let resolved = false;
 let backing: Storage | null = null;
 
@@ -115,24 +136,31 @@ export function set(tokens: TokenInput): void {
   memory = record;
 
   const store = storage();
-  if (store === null) return;
-  try {
-    store.setItem(STORAGE_KEY, JSON.stringify(record));
-  } catch {
-    // Quota exceeded or storage blocked — the memory copy still serves this tab.
+  if (store !== null) {
+    try {
+      store.setItem(STORAGE_KEY, JSON.stringify(record));
+    } catch {
+      // Quota exceeded or storage blocked — the memory copy still serves this tab.
+    }
   }
+  notify();
 }
 
 export function clear(): void {
+  // Read the raw value rather than `get()`: a corrupt entry delegates to
+  // `clear()`, so going through `get()` here would recurse.
+  const hadTokens = memory !== null || readRaw(storage()) !== null;
   memory = null;
 
   const store = storage();
-  if (store === null) return;
-  try {
-    store.removeItem(STORAGE_KEY);
-  } catch {
-    // Nothing useful to do; the next read falls back to memory.
+  if (store !== null) {
+    try {
+      store.removeItem(STORAGE_KEY);
+    } catch {
+      // Nothing useful to do; the next read falls back to memory.
+    }
   }
+  if (hadTokens) notify();
 }
 
 export function getAccessToken(): string | null {
