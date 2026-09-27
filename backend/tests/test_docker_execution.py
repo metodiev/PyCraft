@@ -299,10 +299,24 @@ async def test_payload_path_traversal_is_rejected(backend: DockerExecutionBacken
     assert report.error_message
 
 
-async def test_nested_user_file_is_rejected(backend: DockerExecutionBackend) -> None:
+async def test_nested_project_module_is_materialised(backend: DockerExecutionBackend) -> None:
+    """A project submits package-style paths, which must land in the scratch tree.
+
+    Nesting itself is allowed for project modules; what stays forbidden is
+    *escaping* the scratch directory, which
+    ``test_payload_path_traversal_is_rejected`` covers.
+    """
     report = await backend.execute(
         ExecutionPayload(
-            files={"pkg/evil.py": "print('nope')"},
+            files={
+                "solution.py": (
+                    "from pkg.helper import greeting\n\n\n"
+                    "def greet(name):\n"
+                    "    return greeting(name)\n"
+                ),
+                "pkg/__init__.py": '"""Project package."""\n',
+                "pkg/helper.py": "def greeting(name):\n    return f'Hello, {name}!'\n",
+            },
             tests=TESTS,
             hidden_tests={},
             entry_file="solution.py",
@@ -311,7 +325,8 @@ async def test_nested_user_file_is_rejected(backend: DockerExecutionBackend) -> 
         )
     )
 
-    assert report.status is ExecutionStatus.REJECTED
+    assert report.status is ExecutionStatus.COMPLETED
+    assert report.succeeded
 
 
 async def test_backend_requires_files(backend: DockerExecutionBackend) -> None:
