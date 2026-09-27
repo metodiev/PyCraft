@@ -104,6 +104,82 @@
   font-size: var(--text-xs);
 }
 
+/* --- multi-file tabs (projects) ----------------------------------------- */
+.file-tabs {
+  display: flex;
+  gap: var(--space-1);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.file-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.file-tab:hover {
+  color: var(--text-primary);
+  background: var(--bg-inset);
+}
+
+.file-tab.is-active {
+  color: var(--text-primary);
+  background: var(--bg-inset);
+  border-color: var(--border-strong, var(--border-subtle));
+}
+
+.entry-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent, currentColor);
+}
+
+/* --- rubric ------------------------------------------------------------- */
+.rubric-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.rubric-list li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-1) var(--space-2);
+}
+
+.rubric-label {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: var(--text-sm);
+}
+
+.rubric-weight {
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.rubric-detail {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+}
+
 .toolbar-actions {
   display: flex;
   gap: var(--space-2);

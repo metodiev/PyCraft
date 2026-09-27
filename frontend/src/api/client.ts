@@ -114,6 +114,8 @@ export interface ChallengeSummary {
   skill_mastery: number;
   completed: boolean;
   best_score: number;
+  kind: string;
+  is_project: boolean;
 }
 
 export interface ChallengeDetail extends ChallengeSummary {
@@ -123,6 +125,16 @@ export interface ChallengeDetail extends ChallengeSummary {
   time_limit_ms: number;
   memory_limit_mb: number;
   visible_tests: Record<string, string>;
+  /** Filename -> source, for every file the learner may edit. */
+  starter_files: Record<string, string>;
+  /** Why the project is scored as it is; grading stays test-driven. */
+  rubric: RubricEntry[];
+}
+
+export interface RubricEntry {
+  label: string;
+  weight: number;
+  description: string;
 }
 
 export interface ProgressSummary {

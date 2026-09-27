@@ -11,7 +11,7 @@ import { Link, useParams } from "react-router-dom";
 import Editor from "@monaco-editor/react";
 import "../lib/monaco-loader";
 import { api, ApiError } from "../api/client";
-import type { RunResult, SubmitResult } from "../api/client";
+import type { ChallengeDetail, RunResult, SubmitResult } from "../api/client";
 import { Badge, Button, DifficultyBadge, Notice, Skeleton } from "../components";
 import { useApi } from "../hooks/useApi";
 import { Markdown } from "../components/Markdown";
@@ -21,11 +21,39 @@ import "./workspace.css";
 
 const STORAGE_PREFIX = "pycraft:draft:";
 
+/** The files a learner may edit, in a stable order with the entry file first. */
+function editableFiles(challenge: ChallengeDetail): string[] {
+  const declared = Object.keys(challenge.starter_files ?? {});
+  const names = declared.length > 0 ? declared : [challenge.entry_file];
+  return names.sort((left, right) => {
+    if (left === challenge.entry_file) return -1;
+    if (right === challenge.entry_file) return 1;
+    return left.localeCompare(right);
+  });
+}
+
+function draftKey(challengeId: string, fileName: string): string {
+  return `${STORAGE_PREFIX}${challengeId}:${fileName}`;
+}
+
+/** Read any saved drafts for this challenge, keyed by filename. */
+function readDrafts(challengeId: string, files: string[]): Record<string, string> {
+  const drafts: Record<string, string> = {};
+  for (const name of files) {
+    const stored = localStorage.getItem(draftKey(challengeId, name));
+    if (stored !== null) drafts[name] = stored;
+  }
+  return drafts;
+}
+
 export function ChallengeWorkspace() {
   const { challengeId = "" } = useParams<{ challengeId: string }>();
   const challenge = useApi(() => api.getChallenge(challengeId), [challengeId]);
 
-  const [source, setSource] = useState<string>("");
+  // One buffer per editable file. A single-file challenge has exactly one, so
+  // the editor looks unchanged; a project gets a file switcher.
+  const [buffers, setBuffers] = useState<Record<string, string>>({});
+  const [activeFile, setActiveFile] = useState<string>("");
   const [runResult, setRunResult] = useState<RunResult | null>(null);
   const [submitResult, setSubmitResult] = useState<SubmitResult | null>(null);
   const [grading, setGrading] = useState<"run" | "submit" | null>(null);
@@ -33,13 +61,27 @@ export function ChallengeWorkspace() {
   const editorRef = useRef<unknown>(null);
 
   const entryFile = challenge.data?.entry_file ?? "solution.py";
+  const fileNames = useMemo(
+    () => (challenge.data === null ? [] : editableFiles(challenge.data)),
+    [challenge.data],
+  );
+  const isProject = challenge.data?.is_project === true && fileNames.length > 1;
 
-  // Seed the editor from the starter, preferring an unsaved local draft so a
+  // Seed every buffer from the starter, preferring unsaved local drafts so a
   // refresh never destroys work in progress.
   useEffect(() => {
     if (challenge.data === null) return;
-    const draft = localStorage.getItem(`${STORAGE_PREFIX}${challengeId}`);
-    setSource(draft ?? challenge.data.starter_code);
+    const names = editableFiles(challenge.data);
+    const drafts = readDrafts(challengeId, names);
+    const seeded: Record<string, string> = {};
+    for (const name of names) {
+      const starter = challenge.data.starter_files?.[name] ?? challenge.data.starter_code;
+      seeded[name] = drafts[name] ?? starter;
+    }
+    const initial =
+      names.find((name) => name === challenge.data?.entry_file) ?? names[0] ?? challenge.data.entry_file;
+    setBuffers(seeded);
+    setActiveFile(initial);
     setRunResult(null);
     setSubmitResult(null);
     setActionError(null);
@@ -47,19 +89,30 @@ export function ChallengeWorkspace() {
 
   // Persist drafts so an accidental refresh is recoverable.
   useEffect(() => {
-    if (source === "") return;
+    const active = buffers[activeFile];
+    if (active === undefined) return;
     const timer = window.setTimeout(() => {
-      localStorage.setItem(`${STORAGE_PREFIX}${challengeId}`, source);
+      localStorage.setItem(draftKey(challengeId, activeFile), active);
     }, 400);
     return () => window.clearTimeout(timer);
-  }, [source, challengeId]);
+  }, [buffers, activeFile, challengeId]);
+
+  const source = buffers[activeFile] ?? "";
+
+  const setSource = useCallback(
+    (value: string) => setBuffers((current) => ({ ...current, [activeFile]: value })),
+    [activeFile],
+  );
 
   const execute = useCallback(
     async (kind: "run" | "submit") => {
       setGrading(kind);
       setActionError(null);
       try {
-        const files = { [entryFile]: source };
+        // Every editable file is submitted: a project's modules must travel
+        // together, and an untouched helper has to keep resolving.
+        const files = { ...buffers };
+        if (Object.keys(files).length === 0) files[entryFile] = "";
         if (kind === "run") {
           setRunResult(await api.run(challengeId, files));
         } else {
@@ -71,13 +124,17 @@ export function ChallengeWorkspace() {
         setGrading(null);
       }
     },
-    [challengeId, entryFile, source],
+    [challengeId, entryFile, buffers],
   );
 
   const resetToStarter = useCallback(() => {
     if (challenge.data === null) return;
-    setSource(challenge.data.starter_code);
-    localStorage.removeItem(`${STORAGE_PREFIX}${challengeId}`);
+    const seeded: Record<string, string> = {};
+    for (const name of editableFiles(challenge.data)) {
+      seeded[name] = challenge.data.starter_files?.[name] ?? challenge.data.starter_code;
+      localStorage.removeItem(draftKey(challengeId, name));
+    }
+    setBuffers(seeded);
     setRunResult(null);
     setSubmitResult(null);
   }, [challenge.data, challengeId]);
@@ -134,6 +191,23 @@ export function ChallengeWorkspace() {
         <section className="briefing" aria-label="Challenge briefing">
           <Markdown source={challenge.data.description} />
 
+          {challenge.data.rubric.length > 0 && (
+            <details className="visible-tests" open>
+              <summary>
+                How this is scored <span className="count">{challenge.data.rubric.length}</span>
+              </summary>
+              <ul className="rubric-list">
+                {challenge.data.rubric.map((entry) => (
+                  <li key={entry.label}>
+                    <span className="rubric-label">{entry.label}</span>
+                    <span className="rubric-weight">{entry.weight}%</span>
+                    <p className="rubric-detail">{entry.description}</p>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+
           <details className="visible-tests">
             <summary>
               Visible tests <span className="count">{visibleTests.length}</span>
@@ -148,7 +222,26 @@ export function ChallengeWorkspace() {
 
         <section className="editor-pane" aria-label="Code editor">
           <div className="editor-toolbar">
-            <span className="file-chip">{entryFile}</span>
+            {isProject ? (
+              <div className="file-tabs" role="tablist" aria-label="Project files">
+                {fileNames.map((name) => (
+                  <button
+                    key={name}
+                    type="button"
+                    role="tab"
+                    aria-selected={name === activeFile}
+                    className={`file-tab${name === activeFile ? " is-active" : ""}`}
+                    onClick={() => setActiveFile(name)}
+                    title={name === entryFile ? `${name} (entry file)` : name}
+                  >
+                    {name}
+                    {name === entryFile && <span className="entry-dot" aria-label="entry file" />}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <span className="file-chip">{activeFile || entryFile}</span>
+            )}
             <div className="toolbar-actions">
               <Button variant="ghost" onClick={resetToStarter} title="Restore the starter code">
                 Reset
