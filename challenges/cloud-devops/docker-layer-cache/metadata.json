@@ -1,0 +1,17 @@
+{
+  "id": "cloud-devops-docker-layer-cache",
+  "title": "Docker Layer Cache Analysis",
+  "summary": "Model Docker build-cache invalidation: find which layer first misses, count how much rebuilds, and reorder a Dockerfile so dependencies are cached.",
+  "difficulty": "advanced",
+  "track": "cloud-devops",
+  "module": "Docker",
+  "level": "senior",
+  "python_version": "3.12",
+  "time_limit_ms": 8000,
+  "memory_limit_mb": 256,
+  "points": 150,
+  "order_index": 1,
+  "skills": ["devops", "performance"],
+  "entry_file": "solution.py",
+  "tags": ["docker", "caching", "build-performance", "ci"]
+}
