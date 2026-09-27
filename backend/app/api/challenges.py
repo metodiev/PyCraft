@@ -66,6 +66,11 @@ async def get_challenge(
         time_limit_ms=challenge.time_limit_ms,
         memory_limit_mb=challenge.memory_limit_mb,
         visible_tests=challenge.files.visible_tests,
+        # ``kind`` and ``is_project`` already come from the summary projection.
+        # Single-file challenges expose just the entry, so the editor does not
+        # render a file tree for something with one file.
+        starter_files=challenge.files.starter_files or {challenge.entry_file: challenge.files.starter},
+        rubric=challenge.files.rubric,
     )
 
 
@@ -88,6 +93,8 @@ def _summary(challenge, row: ChallengeProgress | None) -> ChallengeSummary:
         skill_mastery=row.best_score if row else 0,
         completed=completed,
         best_score=row.best_score if row else 0,
+        kind=challenge.kind,
+        is_project=challenge.is_project,
     )
 
 

@@ -34,6 +34,8 @@ class Challenge(Base, TimestampMixin):
     entry_file: Mapped[str] = mapped_column(String(120), default="starter/solution.py")
     # Generated summary of assertion counts used for progress display.
     tests_summary: Mapped[str] = mapped_column(Text, default="")
+    # "challenge" for a focused exercise, "project" for a multi-file build.
+    kind: Mapped[str] = mapped_column(String(20), default="challenge")
 
     submissions: Mapped[list[Submission]] = relationship(  # noqa: F821
         back_populates="challenge", cascade="all, delete-orphan"

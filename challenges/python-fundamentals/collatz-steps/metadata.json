@@ -1,0 +1,17 @@
+{
+  "id": "python-fundamentals-collatz-steps",
+  "title": "Collatz Steps",
+  "summary": "Count the steps of the 3n+1 sequence and find the start below a limit with the longest chain.",
+  "difficulty": "easy",
+  "track": "python-fundamentals",
+  "module": "Control Flow",
+  "level": "junior",
+  "python_version": "3.12",
+  "time_limit_ms": 5000,
+  "memory_limit_mb": 128,
+  "points": 50,
+  "order_index": 4,
+  "skills": ["python.control_flow", "python.fundamentals"],
+  "entry_file": "solution.py",
+  "tags": ["loops", "integers", "algorithms"]
+}

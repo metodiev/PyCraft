@@ -100,17 +100,43 @@ class SubmissionService:
     def _build_payload(
         self, challenge: LoadedChallenge, files: dict[str, str], mode: ExecutionMode
     ) -> ExecutionPayload:
-        # The starter's entry filename is normalised so tests can always
-        # ``from solution import ...`` regardless of what the author named it.
-        normalised = dict(files)
-        if challenge.entry_file in normalised and challenge.entry_file != "solution.py":
-            normalised["solution.py"] = normalised.pop(challenge.entry_file)
+        """Assemble the sandbox payload.
+
+        A single-file challenge names its entry ``solution.py`` so tests can
+        always ``from solution import ...``. A project keeps its own structure
+        and ships every starter file the learner did not override, so an
+        unmodified helper still resolves at import time.
+        """
+        if not challenge.is_project:
+            normalised = dict(files)
+            if challenge.entry_file in normalised and challenge.entry_file != "solution.py":
+                normalised["solution.py"] = normalised.pop(challenge.entry_file)
+            return ExecutionPayload(
+                files=normalised,
+                tests=challenge.files.visible_tests,
+                hidden_tests=challenge.files.hidden_tests,
+                entry_file="solution.py",
+                limits=ExecutionLimits(
+                    time_limit_ms=challenge.time_limit_ms,
+                    memory_limit_mb=challenge.memory_limit_mb,
+                ),
+                mode=mode,
+                python_version=challenge.python_version,
+                include_hidden=mode is ExecutionMode.SUBMIT,
+            )
+
+        merged: dict[str, str] = dict(challenge.files.starter_files)
+        for name, source in files.items():
+            # A learner may add new modules, but may not shadow the tests.
+            if name.startswith("test_") or name.endswith("_test.py"):
+                continue
+            merged[name] = source
 
         return ExecutionPayload(
-            files=normalised,
+            files=merged,
             tests=challenge.files.visible_tests,
             hidden_tests=challenge.files.hidden_tests,
-            entry_file="solution.py",
+            entry_file=challenge.entry_file,
             limits=ExecutionLimits(
                 time_limit_ms=challenge.time_limit_ms,
                 memory_limit_mb=challenge.memory_limit_mb,

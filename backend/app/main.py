@@ -75,6 +75,7 @@ async def _sync_challenge_index(settings: Settings, repository: ChallengeReposit
             row.tests_summary = (
                 f"{challenge.visible_test_count} visible, {challenge.hidden_test_count} hidden"
             )
+            row.kind = challenge.kind
         await session.commit()
 
     logger.info("Indexed %d challenges", len(loaded))

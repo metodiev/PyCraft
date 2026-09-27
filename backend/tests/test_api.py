@@ -317,3 +317,23 @@ async def test_run_is_recorded_in_recent_submissions(client: AsyncClient) -> Non
     assert len(recent) == 1
     assert recent[0]["kind"] == "run"
     assert recent[0]["score"] is None
+
+
+# --- multi-file projects -------------------------------------------------
+@pytest.mark.asyncio
+async def test_single_file_challenge_rejects_nested_paths(client: AsyncClient) -> None:
+    """A nested filename is meaningless for a one-file challenge."""
+    response = await client.post(
+        f"/api/v1/challenges/{CHALLENGE}/run",
+        json={"files": {"pkg/solution.py": "x = 1"}},
+    )
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_single_file_challenge_rejects_hidden_paths(client: AsyncClient) -> None:
+    response = await client.post(
+        f"/api/v1/challenges/{CHALLENGE}/run",
+        json={"files": {".hidden.py": "x = 1"}},
+    )
+    assert response.status_code == 422

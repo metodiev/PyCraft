@@ -1,0 +1,30 @@
+{
+  "id": "backend-engineering-rest-api-service",
+  "title": "Project: In-Process REST API Service",
+  "summary": "Build a router, a middleware pipeline and a service that ties them together.",
+  "difficulty": "intermediate",
+  "track": "backend-engineering",
+  "module": "Service Design",
+  "level": "intermediate",
+  "kind": "project",
+  "python_version": "3.12",
+  "time_limit_ms": 8000,
+  "memory_limit_mb": 256,
+  "points": 100,
+  "order_index": 1,
+  "skills": ["backend.service_design", "backend", "architecture.separation"],
+  "entry_file": "service.py",
+  "tags": ["routing", "middleware", "design"],
+  "rubric": [
+    {
+      "label": "Correctness",
+      "weight": 75,
+      "description": "All visible and hidden tests pass."
+    },
+    {
+      "label": "Design",
+      "weight": 25,
+      "description": "Routing, middleware and assembly stay in their own modules with clear seams."
+    }
+  ]
+}

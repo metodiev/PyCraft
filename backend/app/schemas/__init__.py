@@ -10,9 +10,11 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from app.execution.models import ExecutionMode
 
 # --- Common limits -------------------------------------------------------
-MAX_FILES = 10
+MAX_FILES = 25
 MAX_FILE_BYTES = 128 * 1024
-MAX_TOTAL_BYTES = 256 * 1024
+MAX_TOTAL_BYTES = 512 * 1024
+# A project may nest modules a couple of levels, not arbitrarily deep.
+MAX_PATH_DEPTH = 4
 
 
 class SubmissionRequest(BaseModel):
@@ -20,8 +22,8 @@ class SubmissionRequest(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    # Mapping of filename -> source. A mapping (not a single string) keeps
-    # multi-file challenges possible without changing the contract.
+    # Mapping of filename -> source. A mapping (not a single string) is what
+    # makes multi-file projects possible without changing the contract.
     files: dict[str, str] = Field(..., min_length=1, max_length=MAX_FILES)
     # Optional client-side revision marker, echoed back for traceability.
     client_revision: int | None = None
@@ -29,12 +31,23 @@ class SubmissionRequest(BaseModel):
     @field_validator("files")
     @classmethod
     def _validate_files(cls, files: dict[str, str]) -> dict[str, str]:
+        """Validate filenames and sizes.
+
+        Nested paths are permitted here because project challenges submit
+        several modules; whether nesting is *appropriate* is decided by the
+        endpoint, which knows if the challenge is a project.
+        """
         total = 0
         for name, source in files.items():
             if not name.endswith(".py"):
                 raise ValueError(f"file {name!r} must be a .py file")
-            if "/" in name or "\\" in name or ".." in name:
-                raise ValueError(f"file {name!r} must be a bare filename")
+            parts = name.split("/")
+            if any(part in {"", ".", ".."} for part in parts):
+                raise ValueError(f"file {name!r} has an unsafe path")
+            if any(part.startswith(".") for part in parts):
+                raise ValueError(f"file {name!r} must not be hidden")
+            if len(parts) > MAX_PATH_DEPTH:
+                raise ValueError(f"file {name!r} is nested too deeply")
             if not source.strip():
                 raise ValueError(f"file {name!r} is empty")
             size = len(source.encode("utf-8"))
@@ -44,6 +57,20 @@ class SubmissionRequest(BaseModel):
         if total > MAX_TOTAL_BYTES:
             raise ValueError(f"submission exceeds {MAX_TOTAL_BYTES} bytes in total")
         return files
+
+
+def reject_nested_paths(files: dict[str, str]) -> None:
+    """Refuse nested filenames for single-file challenges.
+
+    Kept out of the schema because only the endpoint knows the challenge kind.
+    Raises ``ValueError`` with a message suitable for a 4xx response.
+    """
+    for name in files:
+        if "/" in name:
+            raise ValueError(
+                f"file {name!r} must be a bare filename; this challenge accepts "
+                "a single file"
+            )
 
 
 class TestResultSchema(BaseModel):
@@ -102,6 +129,8 @@ class ChallengeSummary(BaseModel):
     skill_mastery: int = 0
     completed: bool = False
     best_score: int = 0
+    kind: str = "challenge"
+    is_project: bool = False
 
 
 class ChallengeDetail(ChallengeSummary):
@@ -111,6 +140,13 @@ class ChallengeDetail(ChallengeSummary):
     time_limit_ms: int
     memory_limit_mb: int
     visible_tests: dict[str, str]
+    # "challenge" or "project"; projects expose several editable files.
+    kind: str = "challenge"
+    is_project: bool = False
+    # Filename -> source, for every file the learner may edit.
+    starter_files: dict[str, str] = Field(default_factory=dict)
+    # Documents why a project is scored as it is; grading stays test-driven.
+    rubric: list[dict] = Field(default_factory=list)
 
 
 class TestFileInfo(BaseModel):

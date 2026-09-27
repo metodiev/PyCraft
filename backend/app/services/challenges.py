@@ -43,6 +43,11 @@ class ChallengeFiles:
     starter: str
     visible_tests: dict[str, str] = field(default_factory=dict)
     hidden_tests: dict[str, str] = field(default_factory=dict)
+    # Every file in ``starter/``. A single-file challenge has one entry; a
+    # project has several, and the learner may edit any of them.
+    starter_files: dict[str, str] = field(default_factory=dict)
+    # Optional rubric for project-style challenges.
+    rubric: list[dict[str, object]] = field(default_factory=list)
 
 
 @dataclass(slots=True)
@@ -66,6 +71,12 @@ class LoadedChallenge:
     tags: list[str]
     path: Path
     files: ChallengeFiles
+    # "challenge" for a focused exercise, "project" for a multi-file build.
+    kind: str = "challenge"
+
+    @property
+    def is_project(self) -> bool:
+        return self.kind == "project"
 
     @property
     def visible_test_count(self) -> int:
@@ -74,6 +85,10 @@ class LoadedChallenge:
     @property
     def hidden_test_count(self) -> int:
         return len(self.files.hidden_tests)
+
+    @property
+    def starter_file_count(self) -> int:
+        return len(self.files.starter_files) or (1 if self.files.starter else 0)
 
 
 class ChallengeRepository:
@@ -161,8 +176,15 @@ class ChallengeRepository:
 
         entry_file = str(raw.get("entry_file", "solution.py"))
         starter_path = path / STARTER_DIR / entry_file
+        starter_dir = path / STARTER_DIR
         if not starter_path.is_file():
-            raise ChallengeFormatError(f"starter file missing: {STARTER_DIR}/{entry_file}")
+            # A project may fail to name an entry file, or name one that is not
+            # present; fall back to a sensible default rather than refusing.
+            starter_files = _collect_starter_files(starter_dir)
+            if not starter_files:
+                raise ChallengeFormatError(f"starter file missing: {STARTER_DIR}/{entry_file}")
+            entry_file = "solution.py" if "solution.py" in starter_files else next(iter(starter_files))
+            starter_path = starter_dir / entry_file
 
         description_path = path / DESCRIPTION_FILE
         if not description_path.is_file():
@@ -177,6 +199,15 @@ class ChallengeRepository:
             raise ChallengeFormatError("challenge defines no visible tests")
         if not hidden:
             raise ChallengeFormatError("challenge defines no hidden tests")
+
+        starter_files = _collect_starter_files(starter_dir)
+        kind = str(raw.get("kind", "challenge")).lower()
+        if kind not in {"challenge", "project"}:
+            raise ChallengeFormatError(f"kind must be 'challenge' or 'project', got {kind!r}")
+        # Inferring the kind keeps authors from having to declare it for the
+        # obvious case of a multi-file starter.
+        if kind == "challenge" and len(starter_files) > 1:
+            kind = "project"
 
         return LoadedChallenge(
             id=challenge_id,
@@ -200,8 +231,51 @@ class ChallengeRepository:
                 starter=starter_path.read_text(encoding="utf-8"),
                 visible_tests=visible,
                 hidden_tests=hidden,
+                starter_files=starter_files,
+                rubric=_collect_rubric(raw.get("rubric")),
             ),
+            kind=kind,
         )
+
+
+def _collect_starter_files(starter_dir: Path) -> dict[str, str]:
+    """Every editable file a project ships with.
+
+    Only Python files are loaded: the sandbox materialises them beside the
+    tests, and a non-Python file would have nowhere meaningful to live.
+    """
+    if not starter_dir.is_dir():
+        return {}
+    files: dict[str, str] = {}
+    for source_file in sorted(starter_dir.rglob("*.py")):
+        relative = source_file.relative_to(starter_dir).as_posix()
+        files[relative] = source_file.read_text(encoding="utf-8")
+    return files
+
+
+def _collect_rubric(raw: object) -> list[dict[str, object]]:
+    """Normalise a project's rubric entries.
+
+    A rubric documents *why* a project is scored the way it is; it does not
+    change grading, which stays test-driven.
+    """
+    if not isinstance(raw, list):
+        return []
+    entries: list[dict[str, object]] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        label = str(item.get("label", "")).strip()
+        if not label:
+            continue
+        entries.append(
+            {
+                "label": label,
+                "weight": int(item.get("weight", 0) or 0),
+                "description": str(item.get("description", "")),
+            }
+        )
+    return entries
 
 
 def _collect_tests(tests_dir: Path) -> tuple[dict[str, str], dict[str, str]]:

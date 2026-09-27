@@ -71,7 +71,9 @@ def _materialise(payload: dict) -> None:
     SCRATCH.mkdir(parents=True, exist_ok=True)
 
     for name, source in payload.get("files", {}).items():
-        _safe_write(name, source)
+        # Projects submit several modules; a package-style path is allowed as
+        # long as it cannot escape the scratch directory.
+        _safe_write(name, source, allow_subdir=True)
 
     test_source_files = dict(payload.get("tests", {}))
     test_source_files |= dict(payload.get("hidden_tests", {}))
@@ -114,6 +116,10 @@ def _safe_write(relative: str, source: object, *, allow_subdir: bool = False) ->
         raise ValueError(f"unsafe path in payload: {relative!r}")
     if not allow_subdir and len(rel.parts) > 1:
         raise ValueError(f"unexpected nested path for user file: {relative!r}")
+    if any(part.startswith(".") for part in rel.parts):
+        # Hidden files have no legitimate use here and are a common way to
+        # smuggle state between runs.
+        raise ValueError(f"hidden path in payload: {relative!r}")
 
     target = (SCRATCH / rel).resolve()
     if not target.is_relative_to(SCRATCH.resolve()):
