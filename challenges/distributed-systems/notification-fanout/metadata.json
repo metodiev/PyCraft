@@ -1,0 +1,35 @@
+{
+  "id": "distributed-systems-notification-fanout",
+  "title": "Project: Distributed Notification Fanout",
+  "summary": "Build a notification fanout with per-channel rate limiting and circuit breaking, time-windowed idempotency, and at-least-once delivery that never repeats a unit it already finished.",
+  "difficulty": "advanced",
+  "track": "distributed-systems",
+  "module": "Projects",
+  "level": "staff",
+  "kind": "project",
+  "python_version": "3.12",
+  "time_limit_ms": 8000,
+  "memory_limit_mb": 256,
+  "points": 200,
+  "order_index": 10,
+  "skills": ["distributed", "distributed.idempotency", "backend"],
+  "entry_file": "fanout.py",
+  "tags": ["fanout", "idempotency", "at-least-once", "rate-limiting", "circuit-breaker"],
+  "rubric": [
+    {
+      "label": "Delivery guarantees",
+      "weight": 55,
+      "description": "A retryable failure is never dropped, a finished unit is never re-sent, and the report never claims success for a fanout that left work unfinished."
+    },
+    {
+      "label": "Failure policy",
+      "weight": 30,
+      "description": "Rate limiting, retry classification and the circuit breaker behave correctly against the injected clock: bursts above capacity are impossible, permanent errors are not retried or counted as outages, and an open circuit recovers."
+    },
+    {
+      "label": "Module boundaries",
+      "weight": 15,
+      "description": "channels, dedupe and fanout stay separable: the leaves do not import the orchestrator and no state is shared between channels or stores."
+    }
+  ]
+}
