@@ -1,0 +1,9 @@
+# The runner image is intentionally tiny — CPython plus pytest, nothing else.
+# Anything that would grow it also grows the startup cost of every submission,
+# which is on the critical path for Run and Submit.
+
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+.DS_Store

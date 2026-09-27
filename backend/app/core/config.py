@@ -9,14 +9,48 @@ from __future__ import annotations
 import logging
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic.fields import FieldInfo
+from pydantic_settings import BaseSettings, EnvSettingsSource, SettingsConfigDict
 
 logger = logging.getLogger(__name__)
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
+
+#: Settings that hold a list, and the environment variable names they come from.
+LIST_SETTINGS = frozenset({"cors_origins", "admin_emails"})
+
+
+class _ListFriendlySource(EnvSettingsSource):
+    """Accept comma-separated values for list settings, not only JSON.
+
+    ``pydantic-settings`` treats a ``list[str]`` field as complex and tries to
+    JSON-decode its value *before* any validator runs. A plain
+    ``PYCRAFT_ADMIN_EMAILS=me@example.com`` — the form both ``.env.example`` and
+    the deployment docs have always recommended — therefore fails at startup
+    with a ``SettingsError``, and a ``field_validator(mode="before")`` cannot
+    rescue it because it is never reached.
+
+    Overriding the source rather than the field is what makes both spellings
+    work: a comma-separated list is split, and anything starting with ``[`` is
+    handed to the standard JSON path so existing deployments are unaffected.
+    """
+
+    def prepare_field_value(
+        self,
+        field_name: str,
+        field: FieldInfo,
+        value: Any,
+        value_is_complex: bool,
+    ) -> Any:
+        if field_name in LIST_SETTINGS and isinstance(value, str):
+            stripped = value.strip()
+            if stripped.startswith("["):
+                return super().prepare_field_value(field_name, field, value, value_is_complex)
+            return [item.strip() for item in stripped.split(",") if item.strip()]
+        return super().prepare_field_value(field_name, field, value, value_is_complex)
 
 
 class Settings(BaseSettings):
@@ -28,6 +62,35 @@ class Settings(BaseSettings):
         env_prefix="PYCRAFT_",
         extra="ignore",
     )
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: Any,
+        env_settings: Any,
+        dotenv_settings: EnvSettingsSource,
+        file_secret_settings: Any,
+    ) -> tuple[Any, ...]:
+        """Route environment and dotenv values through the list-aware source.
+
+        Both are replaced, because a value can come from either: the environment
+        in Docker, a ``.env`` file during local development.
+        """
+        return (
+            init_settings,
+            _ListFriendlySource(settings_cls),
+            # DotEnvSettingsSource subclasses EnvSettingsSource, so rebuilding it
+            # on the tolerant base keeps its file handling and gains the parsing.
+            type(dotenv_settings)(
+                settings_cls,
+                env_file=dotenv_settings.env_file,
+                env_file_encoding=dotenv_settings.env_file_encoding,
+                case_sensitive=dotenv_settings.case_sensitive,
+                env_prefix=dotenv_settings.env_prefix,
+            ),
+            file_secret_settings,
+        )
 
     # --- Application -----------------------------------------------------
     environment: Literal["development", "test", "production"] = "development"

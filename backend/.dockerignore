@@ -1,0 +1,29 @@
+# Keep the build context small.
+#
+# Without this, `docker build` ships everything in the directory to the daemon,
+# including the ~130 MB virtualenv. That is slow on every build, and the
+# virtualenv is worse than merely useless: it holds host-built wheels for
+# macOS, so a `.venv` that survived into the image would shadow the Linux
+# interpreter the image is actually trying to use.
+
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Local state and secrets must never be copied into an image.
+.env
+.env.*
+!.env.example
+*.db
+*.sqlite3
+
+# Tests are not needed at run time; the image runs the API only.
+tests/
+
+# Editor and OS noise.
+.DS_Store
+.vscode/
+.idea/

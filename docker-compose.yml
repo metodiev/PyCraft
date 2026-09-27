@@ -1,10 +1,28 @@
 # Local development environment.
 #
-#   docker compose up --build
+#   ./scripts/start.sh          # recommended: preflight checks, logs, verification
+#   docker compose up --build   # or by hand
 #
 # Brings up PostgreSQL, Redis, the API and the frontend. The API talks to the
 # host Docker daemon (mounted socket) to spawn execution sandboxes, so this
 # stack assumes Docker-in-Docker style access to the same daemon.
+#
+# Every published port and the Docker socket path can be overridden, because
+# they are the things that realistically collide on a developer machine:
+#
+#   PYCRAFT_POSTGRES_PORT   host port for PostgreSQL   (5433)
+#   PYCRAFT_REDIS_PORT      host port for Redis        (6379)
+#   PYCRAFT_API_PORT        host port for the API      (8000)
+#   PYCRAFT_WEB_PORT        host port for the web UI   (5173)
+#   PYCRAFT_DOCKER_SOCK     Docker socket to mount     (/var/run/docker.sock)
+#
+# Only the *host* side changes: containers still reach each other on the
+# service names and their internal ports, so nothing else needs adjusting.
+#
+# PostgreSQL is published on 5433 rather than the usual 5432 so it does not
+# collide with a PostgreSQL that is already running on the machine — a native
+# install, or another project's container on the same daemon. Both are common,
+# and a collision stops the stack from starting at all.
 
 name: pycraft
 
@@ -16,7 +34,7 @@ services:
       POSTGRES_PASSWORD: pycraft
       POSTGRES_DB: pycraft
     ports:
-      - "5432:5432"
+      - "${PYCRAFT_POSTGRES_PORT:-5433}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -29,7 +47,7 @@ services:
     image: redis:7-alpine
     command: ["redis-server", "--appendonly", "yes"]
     ports:
-      - "6379:6379"
+      - "${PYCRAFT_REDIS_PORT:-6379}:6379"
     volumes:
       - redis-data:/data
     healthcheck:
@@ -41,11 +59,18 @@ services:
   runner-image:
     # Builds pycraft-runner so the API has a sandbox image to launch. This
     # service exits as soon as the build completes.
+    #
+    # `entrypoint:` is overridden deliberately, not `command:`. The image's
+    # entrypoint is the sandbox runner itself, so a `command: ["/bin/true"]`
+    # would be passed to that runner as an *argument* — it would start, find no
+    # payload on stdin, and exit 2 with "No payload received". That fails the
+    # service, and the API (which waits on service_completed_successfully) never
+    # starts.
     build:
       context: ./runner
       dockerfile: Dockerfile
     image: pycraft-runner:3.12
-    command: ["/bin/true"]
+    entrypoint: ["/bin/true"]
     restart: "no"
 
   api:
@@ -60,11 +85,21 @@ services:
       PYCRAFT_CORS_ORIGINS: "http://localhost:5173"
       PYCRAFT_CHALLENGES_DIR: /app/challenges
     ports:
-      - "8000:8000"
+      - "${PYCRAFT_API_PORT:-8000}:8000"
     volumes:
       # The API spawns sandboxes on the host daemon, so it needs the socket.
-      - /var/run/docker.sock:/var/run/docker.sock
+      # The path is daemon-side, not host-side: on colima and Docker Desktop the
+      # daemon runs in a VM where the socket is always /var/run/docker.sock,
+      # even though no such file exists on the host.
+      - ${PYCRAFT_DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock
       - ./challenges:/app/challenges:ro
+    # The socket is owned by root and the daemon's group, with mode 660, while
+    # the API runs as an unprivileged user. Without joining that group every
+    # connection is refused and submissions fail with "execution backend is not
+    # available"; the group id differs per install (991 on colima, 0 on Docker
+    # Desktop), so scripts/start.sh detects it and passes it in.
+    group_add:
+      - "${PYCRAFT_DOCKER_GID:-0}"
     depends_on:
       postgres:
         condition: service_healthy
@@ -83,8 +118,10 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "5173:80"
+      - "${PYCRAFT_WEB_PORT:-5173}:80"
     environment:
+      # Baked in at build time — nginx proxies /api itself, so this is only a
+      # fallback for `npm run dev`.
       VITE_API_TARGET: http://api:8000
     depends_on:
       api:

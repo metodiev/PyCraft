@@ -1,0 +1,23 @@
+# Keep the build context small.
+#
+# `node_modules` is ~230 MB and is reinstalled inside the image by `npm ci`
+# anyway. Shipping it is slow, and on arm64/amd64 mismatches it is also wrong:
+# any native binary in it was built for the host, not the image.
+
+node_modules/
+dist/
+.vite/
+
+# End-to-end test output and its throwaway database.
+test-results/
+playwright-report/
+blob-report/
+e2e/.data/
+
+.env
+.env.*
+!.env.example
+
+.DS_Store
+.vscode/
+.idea/
