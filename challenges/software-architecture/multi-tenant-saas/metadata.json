@@ -1,0 +1,30 @@
+{
+  "id": "software-architecture-multi-tenant-saas",
+  "title": "Project: Multi-tenant SaaS Backend",
+  "summary": "Build a tenant-isolated SaaS control plane: enforced tenancy at the data layer, plans and entitlements, seat and quota accounting, and an append-only audit log.",
+  "difficulty": "expert",
+  "track": "software-architecture",
+  "module": "Projects",
+  "level": "principal",
+  "kind": "project",
+  "python_version": "3.12",
+  "time_limit_ms": 10000,
+  "memory_limit_mb": 256,
+  "points": 250,
+  "order_index": 10,
+  "skills": ["architecture", "architecture.separation", "databases", "backend"],
+  "entry_file": "control_plane.py",
+  "tags": ["multi-tenancy", "isolation", "entitlements", "quotas", "audit"],
+  "rubric": [
+    {
+      "label": "Correctness",
+      "weight": 60,
+      "description": "Every visible and hidden test passes: isolation, entitlements, quota accounting and audit ordering."
+    },
+    {
+      "label": "Architecture",
+      "weight": 40,
+      "description": "Isolation is enforced by construction — a store that cannot be asked for another tenant's rows — rather than by remembering to add WHERE clauses at every call site."
+    }
+  ]
+}

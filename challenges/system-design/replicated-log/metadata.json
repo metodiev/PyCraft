@@ -1,0 +1,30 @@
+{
+  "id": "system-design-replicated-log",
+  "title": "Project: Replicated Log with Quorum Replication",
+  "summary": "Build a replicated append-only log: quorum writes, leader election with terms, commit-index safety and convergence after a partition heals.",
+  "difficulty": "expert",
+  "track": "system-design",
+  "module": "Projects",
+  "level": "staff",
+  "kind": "project",
+  "python_version": "3.12",
+  "time_limit_ms": 10000,
+  "memory_limit_mb": 256,
+  "points": 250,
+  "order_index": 10,
+  "skills": ["distributed", "system_design", "architecture"],
+  "entry_file": "cluster.py",
+  "tags": ["consensus", "quorum", "replication", "leader-election", "partition"],
+  "rubric": [
+    {
+      "label": "Correctness",
+      "weight": 60,
+      "description": "Every visible and hidden test passes: quorum arithmetic, term monotonicity, commit safety, log convergence and restart durability."
+    },
+    {
+      "label": "Safety",
+      "weight": 40,
+      "description": "No committed entry is ever lost or overwritten, and no two leaders ever hold a quorum in the same term."
+    }
+  ]
+}
