@@ -39,10 +39,10 @@ python3.12 -m venv .venv
 - OpenAPI docs: <http://127.0.0.1:8000/docs>
 - Default storage is SQLite at `backend/.pycraft.db` — no database to install.
 
-Point it at PostgreSQL instead:
+Point it at PostgreSQL instead (the compose stack publishes it on 5433):
 
 ```bash
-export PYCRAFT_DATABASE_URL="postgresql+asyncpg://pycraft:pycraft@localhost:5432/pycraft"
+export PYCRAFT_DATABASE_URL="postgresql+asyncpg://pycraft:pycraft@localhost:5433/pycraft"
 ```
 
 ## 3. Frontend
@@ -64,15 +64,34 @@ stored, attached and refreshed.
 ## 4. Or: everything at once
 
 ```bash
-docker compose up --build
+./scripts/start.sh
 ```
 
 Brings up PostgreSQL, Redis, the API, and the frontend (served by nginx on
-<http://localhost:5173>).
+<http://localhost:5173>), and verifies the result end to end — registering a
+user and grading a real submission in the sandbox. Use it instead of
+`docker compose up --build` unless you want the raw output: it checks the
+environment first, explains failures, and logs everything to `scripts/logs/`.
+
+```bash
+./scripts/status.sh          # what is running, and is it healthy
+./scripts/logs.sh api        # follow a service's log
+./scripts/verify.sh          # prove grading works, without restarting
+./scripts/stop.sh            # stop it (keeps your data)
+./scripts/start.sh --help    # all the options
+```
 
 > **Development only.** The compose file mounts the Docker socket into the API
 > container — that grants effective root on the host. See
 > [security-model.md](./security-model.md#sandbox-trust-boundary).
+
+PostgreSQL is published on **5433**, not 5432, so it does not collide with a
+PostgreSQL already running on your machine. Inside the compose network the API
+still reaches it as `postgres:5432`; only the host-side port differs.
+
+If you run compose yourself, note that **list settings take a comma-separated
+list or a JSON array** — `PYCRAFT_CORS_ORIGINS=http://a,http://b` and
+`PYCRAFT_CORS_ORIGINS='["http://a","http://b"]'` are both accepted.
 
 ## Tests
 

@@ -242,3 +242,8 @@ backend/.e2e.db
 /playwright-report/
 /blob-report/
 .DS_Store
+
+# --- scripts/ ---
+# Run logs from scripts/start.sh, stop.sh and friends. Useful to read after a
+# failure, never useful to commit.
+scripts/logs/

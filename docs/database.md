@@ -30,11 +30,12 @@ The schema is created automatically at startup. Delete the file to start over.
 ## PostgreSQL
 
 ```bash
-export PYCRAFT_DATABASE_URL="postgresql+asyncpg://pycraft:pycraft@localhost:5432/pycraft"
+export PYCRAFT_DATABASE_URL="postgresql+asyncpg://pycraft:pycraft@localhost:5433/pycraft"
 ```
 
-Use `docker compose up postgres` for a local instance. When not SQLite, the
-engine uses a connection pool with `pool_pre_ping`.
+Use `docker compose up postgres` for a local instance; it publishes on **5433**
+so it does not collide with a PostgreSQL already running on the machine. When
+not SQLite, the engine uses a connection pool with `pool_pre_ping`.
 
 ## Migrations
 
