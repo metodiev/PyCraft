@@ -60,8 +60,12 @@ Full instructions: [docs/development.md](docs/development.md).
 | 13-stage engineering roadmap | ✅ |
 | 5 challenges across 2 tracks | ✅ |
 | CI: lint, tests, sandbox security tests, content validation | ✅ |
-| Authentication | ⏳ demo identity only |
+| Authentication (email/password + GitHub OAuth, sessions, reset) | ✅ |
+| Profile management and active-session control | ✅ |
+| Roles: learner / author / admin | ✅ |
+| Gamification: achievements, streaks, leaderboards | ⏳ in progress |
 | Challenge authoring UI | ⏳ content is authored as files |
+| Real-world projects | ⏳ not started |
 | AI assistance | ⏳ not started |
 
 ## Repository layout

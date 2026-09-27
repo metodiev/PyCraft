@@ -212,18 +212,199 @@ Per-skill mastery.
 
 ## Authentication
 
-Every endpoint resolves the acting user through a single FastAPI dependency,
-`current_user`. Today that returns a shared demo account, or the identity named
-by the `X-PyCraft-User` header:
+### Overview
 
-```bash
-curl -H "X-PyCraft-User: learner@example.com" http://localhost:8000/api/v1/progress
+PyCraft issues two tokens:
+
+| Token | Format | Lifetime | Revocable |
+| --- | --- | --- | --- |
+| Access token | Signed JWT | 15 min | Indirectly (via its session) |
+| Refresh token | Opaque random string | 30 days | Yes |
+
+Send the access token as `Authorization: Bearer <token>`. On `401`, exchange the
+refresh token for a new pair.
+
+**Refresh tokens rotate.** Each `/auth/refresh` consumes the presented token and
+issues a new one. Replaying a consumed token is treated as theft: **every**
+session for that user is revoked immediately. Store the newest refresh token and
+never retry a request with an old one.
+
+Logout and password change take effect immediately, because the access token
+names a session that is checked against the database on every request.
+
+### Endpoints
+
+#### `GET /auth/config`
+
+Public — lets the UI hide disabled options.
+
+```json
+{
+  "password_auth_enabled": true,
+  "registration_enabled": true,
+  "github_enabled": false,
+  "min_password_length": 10
+}
 ```
 
-This header is a **development convenience, not authentication** — it is
-self-asserted and must be replaced by real sessions before any multi-user
-deployment. Because all routes depend on `current_user`, that replacement is
-contained to one function.
+#### `POST /auth/register`
+
+```json
+{ "email": "ada@example.com", "password": "Correct-Horse-9", "display_name": "Ada" }
+```
+
+Returns `201` with a `TokenResponse`. Emails are normalised to lowercase.
+
+Password policy: at least 10 characters, at least one letter, at least one digit.
+Unknown fields are rejected (`422`).
+
+Errors: `409` if the email is already registered · `403` if registration is
+disabled · `422` on a weak password or invalid email.
+
+#### `POST /auth/login`
+
+```json
+{ "email": "ada@example.com", "password": "Correct-Horse-9" }
+```
+
+Returns `TokenResponse`. A wrong password and an unknown email produce an
+**identical** `401`, so the endpoint cannot be used to enumerate accounts.
+
+#### `POST /auth/refresh`
+
+```json
+{ "refresh_token": "<token>" }
+```
+
+Returns a fresh `TokenResponse`. `401` if the token is unknown, expired, revoked,
+or has already been used.
+
+#### `POST /auth/logout`
+
+```json
+{ "refresh_token": "<token>" }
+```
+
+Revokes that session. Always returns `200`, even for an unknown token
+(idempotent).
+
+#### `GET /auth/me`
+
+Returns the caller's `UserProfile`. Requires authentication.
+
+```json
+{
+  "id": "…",
+  "email": "ada@example.com",
+  "display_name": "Ada Lovelace",
+  "role": "learner",
+  "avatar_url": "",
+  "headline": "Backend engineer",
+  "bio": "…",
+  "location": "London",
+  "website": "https://example.com",
+  "xp": 250,
+  "current_streak": 4,
+  "longest_streak": 11,
+  "last_active_date": "2026-09-27",
+  "is_admin": false,
+  "has_password": true,
+  "linked_providers": [],
+  "created_at": "2026-09-01T10:00:00Z"
+}
+```
+
+#### `PATCH /auth/me`
+
+Partial update of `display_name`, `headline`, `bio`, `location`, `website`.
+Omitted fields are left unchanged; `role` and `xp` are rejected (`422`) so they
+cannot be self-assigned.
+
+#### `POST /auth/me/password`
+
+```json
+{ "current_password": "Correct-Horse-9", "password": "Even-Better-Pass-7" }
+```
+
+Revokes **all** sessions, including the caller's, so the client must sign in
+again. `400` if the current password is wrong.
+
+#### `GET /auth/me/sessions` · `DELETE /auth/me/sessions/{id}`
+
+List active sessions (the current one is flagged `is_current`) and revoke one by
+id. Session ids are scoped to the caller; another user's id returns `404`.
+
+#### `POST /auth/password/reset-request`
+
+```json
+{ "email": "ada@example.com" }
+```
+
+Always returns the same `200` message, whether or not the address is registered.
+With the `console` email backend the reset link is written to the server log
+instead of being sent.
+
+#### `POST /auth/password/reset-confirm`
+
+```json
+{ "token": "<from the email link>", "password": "Even-Better-Pass-7" }
+```
+
+Single-use; the token is invalidated on success and revokes all sessions. `400`
+on an invalid or expired token.
+
+### GitHub OAuth
+
+Browser-navigated endpoints, not JSON API calls.
+
+| Endpoint | Purpose |
+| --- | --- |
+| `GET /auth/github/authorize?redirect_to=/` | Redirects to GitHub |
+| `GET /auth/github/callback` | GitHub redirects here; signs the user in |
+| `GET /auth/github/status` | Whether it is configured |
+
+The callback ends by redirecting to
+`<frontend_base_url><redirect_to>#access_token=…&refresh_token=…`. Tokens travel
+in the **fragment** so they are never sent to a server, and the frontend strips
+them from the URL immediately.
+
+`redirect_to` is carried inside a signed, 10-minute, single-purpose JWT. A
+hostile value (`https://evil.example.com`, `//evil.example.com`) is discarded in
+favour of `/`, and an access token cannot be used in place of a state value.
+
+Account linking: an existing account with the same **verified** email is reused
+rather than duplicated. Unverified GitHub emails are refused, since accepting one
+could hand over another user's account.
+
+### Roles
+
+| Role | Can |
+| --- | --- |
+| `learner` | Solve challenges |
+| `author` | Also create and edit challenges |
+| `admin` | Also manage users and publish content |
+
+Grant admin via `PYCRAFT_ADMIN_EMAILS` (applied at registration):
+
+```bash
+PYCRAFT_ADMIN_EMAILS=you@example.com,teammate@example.com
+```
+
+Admin endpoints: `GET /auth/users`, `PATCH /auth/users/{id}/role?role=<role>`.
+An admin cannot demote their own account, which prevents locking the last
+administrator out.
+
+### Public vs protected endpoints
+
+| Endpoint group | Auth |
+| --- | --- |
+| `/auth/config`, `/auth/register`, `/auth/login`, `/auth/refresh`, `/auth/password/*`, `/auth/github/*` | Public |
+| `/challenges` (browse), `/runtime`, `/health` | Public |
+| `/challenges/{id}/run`, `/challenges/{id}/submit` | Required |
+| `/dashboard`, `/progress`, `/roadmap`, `/skills` | Required |
+| `/auth/me*`, `/auth/users*` | Required (admin for the last) |
+
+Browsing the catalogue signed out works and shows no personal progress.
 
 ## Error format
 
@@ -236,3 +417,14 @@ FastAPI's standard shapes apply:
 ```json
 { "detail": [ { "loc": ["body", "files"], "msg": "…", "type": "…" } ] }
 ```
+
+Authentication failures additionally carry `WWW-Authenticate: Bearer`.
+
+| Status | Meaning |
+| --- | --- |
+| `401` | Missing, malformed, or expired credentials; session ended |
+| `403` | Authenticated but not permitted (disabled account, insufficient role) |
+| `404` | Resource does not exist, or is not visible to the caller |
+| `409` | Conflict (email already registered) |
+| `422` | Request body failed validation |
+| `503` | Execution sandbox unavailable |

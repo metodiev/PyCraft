@@ -150,7 +150,8 @@ never destroys in-progress work.
 | A new language/track | `roadmap.py` stage + challenge metadata |
 | A new execution substrate | A new `ExecutionBackend` implementation |
 | A new scoring dimension | The `WEIGHTS` table + a scoring function |
-| Authentication | `current_user` in [`app/api/deps.py`](../backend/app/api/deps.py) |
+| A new sign-in provider | `AuthProvider` + a sibling to `services/github_oauth.py` |
+| An achievement | One entry in the registry in `services/achievements.py` |
 | Python 3.13 support | `runner/Dockerfile` + `SUPPORTED_PYTHON_VERSIONS` |
 
 ## Deliberate non-goals (for now)
@@ -162,6 +163,5 @@ never destroys in-progress work.
 - **A job queue.** Execution is synchronous within the request. The concurrency
   semaphore bounds load; a Celery/Redis queue is the natural next step when
   submissions outgrow a single process.
-- **Real authentication.** A single demo identity is resolved by
-  `current_user`. Every route already depends on that seam, so adding sessions
-  is additive.
+- **AI assistance.** Not started. The spec is explicit that AI must not become
+  the primary learning mechanism; hints and code review are the intended scope.

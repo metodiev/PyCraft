@@ -80,6 +80,37 @@ startup on the critical path.
 Do **not** treat hidden tests as a secret store. Never place credentials,
 private URLs, or proprietary data in a `test_hidden*.py` file.
 
+## Authentication
+
+| Concern | Approach | Verified by |
+| --- | --- | --- |
+| Password storage | Argon2id via `pwdlib`, salted per hash | `test_password_hash_is_salted` |
+| Account enumeration on login | Identical 401 for unknown email and wrong password, plus a dummy hash comparison so timing matches | `test_login_with_unknown_email_is_indistinguishable` |
+| Account enumeration on reset | Always the same acknowledgement | `test_reset_request_does_not_reveal_account_existence` |
+| Token theft via database dump | Refresh tokens stored only as SHA-256 digests | `test_opaque_token_hash_is_deterministic` |
+| Refresh token replay | Rotation; a reused token revokes every session | `test_refresh_token_reuse_revokes_all_sessions` |
+| Stale access tokens after logout | The JWT names a session that is checked on every request | `test_logout_revokes_the_session_immediately` |
+| Token forgery | HS256 with a server-side key; a token signed with another key is rejected | `test_me_rejects_token_signed_with_another_key` |
+| OAuth state forgery | Signed, 10-minute, single-purpose JWT | `test_state_rejects_tampered_redirect` |
+| Open redirect via OAuth | `redirect_to` must be a same-site path; else falls back to `/` | `test_state_neutralises_open_redirect_attempts` |
+| Account takeover via unverified email | Only verified provider emails are accepted for linking | `test_ignores_unverified_primary_email` |
+| Privilege escalation via profile update | `role` and `xp` are not in the update schema | `test_profile_rejects_role_escalation` |
+| Self-lockout | An admin cannot demote their own account | `test_admin_cannot_demote_self` |
+| Cross-user session revocation | Session ids are scoped to the caller (`404` otherwise) | `test_cannot_revoke_another_users_session` |
+
+Notes:
+
+- **The signing key is mandatory in production.** With `PYCRAFT_SECRET_KEY`
+  unset, a production instance refuses to start rather than signing with a key
+  that changes on restart.
+- **Access tokens are short-lived (15 min) but not individually revocable.**
+  Revocation happens at the session level. Shortening the TTL shrinks the
+  exposure window at the cost of more refreshes.
+- **`state` is signed rather than stored.** That avoids a database round trip
+  and gives tamper-evidence, at the cost of being replayable within its 10-minute
+  window. GitHub's authorization codes are themselves single-use, which bounds
+  the impact.
+
 ## Sandbox trust boundary
 
 ```
