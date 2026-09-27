@@ -43,6 +43,10 @@ class Settings(BaseSettings):
     database_url: str = f"sqlite+aiosqlite:///{REPO_ROOT / 'backend' / '.pycraft.db'}"
     db_echo: bool = False
     db_pool_size: int = 5
+    # Run `alembic upgrade head` at startup. Convenient for development and for
+    # a single-container deployment; turn it off when migrations are applied by
+    # a release step, so a rollback is not fighting the app for the schema.
+    auto_migrate: bool = True
 
     # --- Authentication --------------------------------------------------
     # Signing key for access tokens. Development generates a random key per

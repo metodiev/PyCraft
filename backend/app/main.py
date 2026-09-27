@@ -25,8 +25,8 @@ from app.api import (
     submissions,
 )
 from app.core.config import Settings, get_settings
-from app.db.base import Base
-from app.db.session import dispose_engine, get_engine, get_session_factory, init_engine
+from app.db.migrations import prepare_schema
+from app.db.session import dispose_engine, get_session_factory, init_engine
 from app.execution.base import ExecutionBackend
 from app.execution.docker_backend import DockerExecutionBackend
 from app.execution.local_backend import LocalExecutionBackend
@@ -82,49 +82,16 @@ async def _sync_challenge_index(settings: Settings, repository: ChallengeReposit
     logger.info("Indexed %d challenges", len(loaded))
 
 
-async def _bootstrap_schema(settings: Settings) -> None:
-    """Create missing tables, and detect a stale development database.
+async def _prepare_schema(settings: Settings) -> None:
+    """Bring the database schema up to date, via Alembic when available.
 
-    ``create_all`` only ever creates; it never evolves an existing table. A
-    developer who ran an earlier build therefore keeps the old schema and gets
-    confusing 500s at run time. Since the platform has no migrations yet, the
-    honest thing is to detect the mismatch and say exactly how to fix it.
+    Migrations replace the old ``create_all`` call, which could only ever create
+    tables and never evolve one — meaning any schema change required deleting a
+    developer's database by hand. ``prepare_schema`` also recognises a database
+    created before migrations existed and stamps it, so an existing installation
+    upgrades in place instead of failing on an already-present table.
     """
-    from sqlalchemy import inspect
-
-    engine = get_engine()
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-        if settings.is_production:
-            return
-
-        existing = set(await conn.run_sync(lambda sync_conn: inspect(sync_conn).get_table_names()))
-        missing_columns: list[str] = []
-
-        def _collect(sync_conn) -> None:
-            inspector = inspect(sync_conn)
-            for table in Base.metadata.sorted_tables:
-                if table.name not in existing:
-                    continue
-                present = {column["name"] for column in inspector.get_columns(table.name)}
-                for column in table.columns:
-                    if column.name not in present:
-                        missing_columns.append(f"{table.name}.{column.name}")
-
-        await conn.run_sync(_collect)
-
-    if missing_columns:
-        preview = ", ".join(sorted(missing_columns)[:6])
-        logger.error(
-            "The development database is out of date and is missing %d column(s): %s%s. "
-            "create_all() cannot alter existing tables, so requests touching these "
-            "columns will fail. For a development database the simplest fix is to "
-            "delete it and let it be rebuilt:  rm %s",
-            len(missing_columns),
-            preview,
-            " ..." if len(missing_columns) > 6 else "",
-            settings.database_url.removeprefix("sqlite+aiosqlite:///"),
-        )
+    await prepare_schema(settings)
 
 
 @asynccontextmanager
@@ -133,7 +100,7 @@ async def lifespan(app: FastAPI):
 
     init_engine(settings)
     try:
-        await _bootstrap_schema(settings)
+        await _prepare_schema(settings)
     except Exception:
         await dispose_engine()
         raise
