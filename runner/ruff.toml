@@ -1,0 +1,15 @@
+# The runner is a standalone script executed *inside* an unprivileged container.
+# It must stay stdlib-only and is not importable from the backend, so it is
+# configured separately from the application package.
+
+target-version = "py312"
+line-length = 100
+
+[lint]
+# pytest hook signatures are fixed; the runner also needs broad exception
+# handling so a reporting failure never masks the real test outcome.
+select = ["E", "W", "F", "I", "B", "UP", "SIM"]
+ignore = [
+  "E501",
+  "ARG002", # unused hook arguments required by pytest's plugin API
+]

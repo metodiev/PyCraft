@@ -1,0 +1,17 @@
+{
+  "id": "python-fundamentals-fizzbuzz",
+  "title": "FizzBuzz",
+  "summary": "Generate the classic FizzBuzz list with the correct order of divisibility checks.",
+  "difficulty": "easy",
+  "track": "python-fundamentals",
+  "module": "Control Flow",
+  "level": "junior",
+  "python_version": "3.12",
+  "time_limit_ms": 5000,
+  "memory_limit_mb": 128,
+  "points": 50,
+  "order_index": 2,
+  "skills": ["python.control_flow", "python.basics"],
+  "entry_file": "solution.py",
+  "tags": ["loops", "conditionals"]
+}

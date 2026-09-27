@@ -1,0 +1,17 @@
+{
+  "id": "python-professional-retry-decorator",
+  "title": "Retry Decorator",
+  "summary": "Build a decorator factory that retries a failing call and re-raises the final error.",
+  "difficulty": "advanced",
+  "track": "python-professional",
+  "module": "Decorators & Closures",
+  "level": "senior",
+  "python_version": "3.12",
+  "time_limit_ms": 5000,
+  "memory_limit_mb": 128,
+  "points": 150,
+  "order_index": 2,
+  "skills": ["python.decorators", "python.professional"],
+  "entry_file": "solution.py",
+  "tags": ["decorators", "closures", "error-handling"]
+}

@@ -1,0 +1,70 @@
+[project]
+name = "pycraft-backend"
+version = "0.1.0"
+description = "PyCraft API — interactive Python engineering training platform"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "pydantic>=2.9.0",
+    "pydantic-settings>=2.6.0",
+    "email-validator>=2.2.0",
+    "sqlalchemy[asyncio]>=2.0.36",
+    "aiosqlite>=0.20.0",
+    "asyncpg>=0.30.0",
+    "alembic>=1.14.0",
+    "docker>=7.1.0",
+    "httpx>=0.28.0",
+    # Authentication: Argon2 password hashing, JWT access tokens and the
+    # OAuth client used for GitHub sign-in.
+    "pwdlib[argon2]>=0.2.0",
+    "pyjwt>=2.9.0",
+    "authlib>=1.3.0",
+    # Email delivery for password reset (console backend in development).
+    "aiosmtplib>=3.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "anyio>=4.6.0",
+    "ruff>=0.8.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+markers = [
+    "docker: integration tests that require a running Docker daemon",
+]
+filterwarnings = ["error::DeprecationWarning:app.*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["app", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+    "SIM", # flake8-simplify
+    "RUF", # ruff-specific
+]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]

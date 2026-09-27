@@ -1,0 +1,256 @@
+/* Shared component styles. */
+
+.card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.card-title {
+  font-size: var(--text-lg);
+}
+
+/* --- progress ----------------------------------------------------------- */
+.progress-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: var(--space-2);
+}
+
+.progress-label {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+.progress-value {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.progress-track {
+  height: 6px;
+  background: var(--bg-inset);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 400ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-accent {
+  background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+}
+
+.progress-success {
+  background: linear-gradient(90deg, var(--success), #6fd99b);
+}
+
+.progress-warning {
+  background: linear-gradient(90deg, var(--warning), #f0cb6a);
+}
+
+/* --- badges ------------------------------------------------------------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.badge-neutral {
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.badge-accent {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+}
+
+.badge-success {
+  background: var(--success-dim);
+  color: var(--success);
+}
+
+.badge-warning {
+  background: var(--warning-dim);
+  color: var(--warning);
+}
+
+.badge-danger {
+  background: var(--danger-dim);
+  color: var(--danger);
+}
+
+.badge.difficulty {
+  background: color-mix(in srgb, var(--diff-color) 16%, transparent);
+  color: var(--diff-color);
+  border: 1px solid color-mix(in srgb, var(--diff-color) 40%, transparent);
+}
+
+.badge.difficulty[data-difficulty="beginner"] {
+  --diff-color: var(--diff-beginner);
+}
+.badge.difficulty[data-difficulty="easy"] {
+  --diff-color: var(--diff-easy);
+}
+.badge.difficulty[data-difficulty="intermediate"] {
+  --diff-color: var(--diff-intermediate);
+}
+.badge.difficulty[data-difficulty="advanced"] {
+  --diff-color: var(--diff-advanced);
+}
+.badge.difficulty[data-difficulty="expert"] {
+  --diff-color: var(--diff-expert);
+}
+
+/* --- buttons ------------------------------------------------------------ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #04201c;
+  font-weight: 600;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.btn-secondary {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+}
+
+.btn-ghost {
+  color: var(--text-secondary);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.btn-danger {
+  background: var(--danger-dim);
+  color: var(--danger);
+  border: 1px solid rgba(240, 96, 58, 0.3);
+}
+
+/* --- spinner ------------------------------------------------------------ */
+.spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 600ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* --- notices ------------------------------------------------------------ */
+.notice {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid;
+  font-size: var(--text-sm);
+}
+
+.notice-info {
+  background: rgba(106, 168, 240, 0.1);
+  border-color: rgba(106, 168, 240, 0.3);
+  color: #b8d4f5;
+}
+
+.notice-success {
+  background: var(--success-dim);
+  border-color: rgba(74, 201, 126, 0.3);
+  color: #a8e6c0;
+}
+
+.notice-warning {
+  background: var(--warning-dim);
+  border-color: rgba(227, 179, 65, 0.3);
+  color: #f0dca0;
+}
+
+.notice-danger {
+  background: var(--danger-dim);
+  border-color: rgba(240, 96, 58, 0.3);
+  color: #f5b8a6;
+}
+
+/* --- empty state -------------------------------------------------------- */
+.empty-state {
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+}
+
+.empty-title {
+  color: var(--text-secondary);
+}
+
+.empty-hint {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  margin-top: var(--space-1);
+}
+
+/* --- skeleton ----------------------------------------------------------- */
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-hover) 50%, var(--bg-elevated) 75%);
+  background-size: 200% 100%;
+  border-radius: var(--radius-sm);
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}

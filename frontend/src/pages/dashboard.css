@@ -1,0 +1,321 @@
+/* Dashboard-specific layout. */
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* --- journey header ----------------------------------------------------- */
+.journey-card {
+  background: linear-gradient(150deg, var(--bg-panel), var(--bg-elevated));
+  border-color: var(--border-default);
+}
+
+.journey-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-5);
+  flex-wrap: wrap;
+}
+
+.journey-eyebrow {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.journey-title {
+  font-size: var(--text-3xl);
+  letter-spacing: -0.02em;
+  margin-top: var(--space-1);
+}
+
+.journey-stats {
+  display: flex;
+  gap: var(--space-6);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.stat-value {
+  font-family: var(--font-mono);
+  font-size: var(--text-xl);
+  font-weight: 600;
+}
+
+.stat-label {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* --- level rail --------------------------------------------------------- */
+.level-rail {
+  position: relative;
+  height: 46px;
+  margin: var(--space-6) var(--space-2) var(--space-2);
+}
+
+.level-track,
+.level-fill {
+  position: absolute;
+  top: 8px;
+  left: 0;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.level-track {
+  right: 0;
+  background: var(--border-default);
+}
+
+.level-fill {
+  background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+  transition: width 600ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.level-node {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.level-dot {
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: var(--bg-base);
+  border: 3px solid var(--border-strong);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.level-node[data-state="done"] .level-dot {
+  border-color: var(--accent);
+}
+
+.level-node[data-state="current"] .level-dot {
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: 0 0 0 5px var(--accent-dim);
+}
+
+.level-name {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+
+.level-node[data-state="current"] .level-name {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.journey-next {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  margin-top: var(--space-4);
+}
+
+/* --- grid --------------------------------------------------------------- */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .journey-stats {
+    gap: var(--space-4);
+  }
+}
+
+.skill-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* --- next-up teasers ---------------------------------------------------- */
+.next-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.teaser {
+  padding: var(--space-4);
+  background: var(--bg-inset);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition);
+}
+
+.teaser:hover {
+  border-color: var(--accent-border);
+}
+
+.teaser-top {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.teaser-title {
+  font-size: var(--text-lg);
+  margin-bottom: var(--space-1);
+}
+
+.teaser-summary {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-4);
+}
+
+/* --- roadmap strip ------------------------------------------------------ */
+.roadmap-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.strip-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  position: relative;
+}
+
+/* Connector line between stages, suppressed for the final row. */
+.strip-item:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 26px;
+  bottom: -6px;
+  width: 1px;
+  background: var(--border-subtle);
+}
+
+.strip-item[data-empty="true"] {
+  opacity: 0.45;
+}
+
+.strip-marker {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  flex-shrink: 0;
+  z-index: 1;
+  background: var(--bg-panel);
+}
+
+.strip-marker[data-complete="true"] {
+  background: var(--success);
+  border-color: var(--success);
+}
+
+.strip-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex: 1;
+  gap: var(--space-4);
+}
+
+.strip-title {
+  font-size: var(--text-sm);
+}
+
+.strip-meta {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+}
+
+/* --- tables ------------------------------------------------------------- */
+.table-wrap {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.data-table th {
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.data-table td {
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tbody tr:hover {
+  background: var(--bg-inset);
+}
+
+.table-link {
+  color: var(--text-primary);
+}
+
+.table-link:hover {
+  color: var(--accent);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.link-button {
+  background: none;
+  padding: 0;
+  color: var(--accent);
+  font-size: var(--text-sm);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.link-button:hover {
+  color: var(--accent-hover);
+}

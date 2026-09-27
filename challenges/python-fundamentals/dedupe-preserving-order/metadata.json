@@ -1,0 +1,17 @@
+{
+  "id": "python-fundamentals-dedupe-preserving-order",
+  "title": "Dedupe, Preserving Order",
+  "summary": "Remove duplicates from a list while keeping first-occurrence order, even for unhashable items.",
+  "difficulty": "easy",
+  "track": "python-fundamentals",
+  "module": "Collections",
+  "level": "junior",
+  "python_version": "3.12",
+  "time_limit_ms": 5000,
+  "memory_limit_mb": 128,
+  "points": 50,
+  "order_index": 3,
+  "skills": ["python.collections", "python.fundamentals"],
+  "entry_file": "solution.py",
+  "tags": ["lists", "sets", "ordering"]
+}

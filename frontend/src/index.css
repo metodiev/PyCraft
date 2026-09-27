@@ -1,0 +1,5 @@
+/* Global resets and layout primitives layered on top of the design tokens. */
+
+#root {
+  min-height: 100%;
+}

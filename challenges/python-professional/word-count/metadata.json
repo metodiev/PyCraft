@@ -1,0 +1,17 @@
+{
+  "id": "python-professional-word-count",
+  "title": "Word Count",
+  "summary": "Count case-insensitive alphanumeric words in a text, splitting on any non-alphanumeric character.",
+  "difficulty": "intermediate",
+  "track": "python-professional",
+  "module": "Text Processing",
+  "level": "intermediate",
+  "python_version": "3.12",
+  "time_limit_ms": 8000,
+  "memory_limit_mb": 256,
+  "points": 100,
+  "order_index": 1,
+  "skills": ["python.collections", "python.professional"],
+  "entry_file": "solution.py",
+  "tags": ["dict", "strings", "algorithms"]
+}

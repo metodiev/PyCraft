@@ -1,0 +1,17 @@
+{
+  "id": "python-fundamentals-hello-world",
+  "title": "Hello, World",
+  "summary": "Return your first formatted string from a Python function.",
+  "difficulty": "beginner",
+  "track": "python-fundamentals",
+  "module": "Getting Started",
+  "level": "junior",
+  "python_version": "3.12",
+  "time_limit_ms": 5000,
+  "memory_limit_mb": 128,
+  "points": 50,
+  "order_index": 1,
+  "skills": ["python.basics", "python.fundamentals"],
+  "entry_file": "solution.py",
+  "tags": ["strings", "functions", "basics"]
+}

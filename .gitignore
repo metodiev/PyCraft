@@ -216,3 +216,14 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- PyCraft ---
+# Local development database (SQLite). Never commit learner data.
+backend/.pycraft.db
+backend/.pycraft.db-journal
+*.sqlite3
+
+# Local environment overrides may contain credentials.
+.env
+.env.local
+!.env.example

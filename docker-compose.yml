@@ -1,0 +1,95 @@
+# Local development environment.
+#
+#   docker compose up --build
+#
+# Brings up PostgreSQL, Redis, the API and the frontend. The API talks to the
+# host Docker daemon (mounted socket) to spawn execution sandboxes, so this
+# stack assumes Docker-in-Docker style access to the same daemon.
+
+name: pycraft
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: pycraft
+      POSTGRES_PASSWORD: pycraft
+      POSTGRES_DB: pycraft
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pycraft"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  runner-image:
+    # Builds pycraft-runner so the API has a sandbox image to launch. This
+    # service exits as soon as the build completes.
+    build:
+      context: ./runner
+      dockerfile: Dockerfile
+    image: pycraft-runner:3.12
+    command: ["/bin/true"]
+    restart: "no"
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      PYCRAFT_ENVIRONMENT: development
+      PYCRAFT_DATABASE_URL: postgresql+asyncpg://pycraft:pycraft@postgres:5432/pycraft
+      PYCRAFT_EXECUTION_BACKEND: docker
+      PYCRAFT_RUNNER_IMAGE: pycraft-runner:3.12
+      PYCRAFT_CORS_ORIGINS: "http://localhost:5173"
+      PYCRAFT_CHALLENGES_DIR: /app/challenges
+    ports:
+      - "8000:8000"
+    volumes:
+      # The API spawns sandboxes on the host daemon, so it needs the socket.
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./challenges:/app/challenges:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      runner-image:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    environment:
+      VITE_API_TARGET: http://api:8000
+    depends_on:
+      api:
+        condition: service_started
+
+volumes:
+  postgres-data:
+  redis-data:
