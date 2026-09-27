@@ -227,3 +227,18 @@ backend/.pycraft.db-journal
 .env
 .env.local
 !.env.example
+
+# Playwright
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+# The end-to-end run's own SQLite database and the directory it lives in.
+frontend/e2e/.data/
+frontend/.e2e.db
+backend/.e2e.db
+# Playwright writes these next to the working directory it was invoked from, so
+# a run started at the repository root leaves them here rather than in frontend/.
+/test-results/
+/playwright-report/
+/blob-report/
+.DS_Store

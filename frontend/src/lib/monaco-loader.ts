@@ -35,3 +35,15 @@ window.MonacoEnvironment = {
 };
 
 loader.config({ monaco });
+
+// Expose the editor API so end-to-end tests can drive Monaco deterministically.
+// Monaco keeps a hidden readonly textarea and intercepts key handling, so
+// synthetic input is unreliable: a select-all press is dropped and the typing
+// that follows appends to the starter instead of replacing it, which would let
+// a test grade code the learner never wrote.
+//
+// Dev and test builds only — this is stripped from a production bundle. It is
+// an escape hatch for tests, not part of the application's runtime surface.
+if (import.meta.env.DEV || import.meta.env.MODE === "test") {
+  (window as Window & { monaco?: typeof monaco }).monaco = monaco;
+}

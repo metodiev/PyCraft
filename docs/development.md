@@ -95,7 +95,13 @@ Frontend:
 cd frontend
 npx tsc -b          # typecheck (strict)
 npm run build       # production build
+npx playwright install chromium   # once
+npm run test:e2e    # end to end; starts both servers itself
 ```
+
+The end-to-end suite needs no running servers and no prepared database — it
+starts the API and the web server on their own ports and gives the API its own
+SQLite file. See [testing.md](./testing.md#end-to-end).
 
 ## Linting
 
