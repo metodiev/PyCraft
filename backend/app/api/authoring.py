@@ -96,7 +96,7 @@ async def validate(payload: DraftPayload, user: RequireAuthor) -> ValidationOut:
     try:
         draft = draft_from_payload(payload.model_dump())
     except AuthoringError as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc
 
     issues = validate_draft(draft)
     return _to_validation(issues)
@@ -117,7 +117,7 @@ async def publish(
     try:
         draft = draft_from_payload(payload.model_dump())
     except AuthoringError as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc
 
     issues = validate_draft(draft)
     if blocking_issues(issues):

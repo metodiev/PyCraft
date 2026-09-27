@@ -14,6 +14,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import (
+    ai,
     auth,
     authoring,
     challenges,
@@ -142,6 +143,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     api_routers = (
         auth.router,
+        ai.router,
         github.router,
         authoring.router,
         challenges.router,

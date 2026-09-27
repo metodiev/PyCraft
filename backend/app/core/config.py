@@ -82,6 +82,19 @@ class Settings(BaseSettings):
     # Base URL the frontend is served from, used to build links in emails.
     frontend_base_url: str = "http://127.0.0.1:5173"
 
+    # --- AI assistance ---------------------------------------------------
+    # "disabled" (default) | "openai" — the latter covers any OpenAI-compatible
+    # /chat/completions endpoint (OpenAI, Groq, vLLM, Ollama, ...).
+    ai_provider: Literal["disabled", "openai"] = "disabled"
+    ai_api_key: str = ""
+    ai_base_url: str = "https://api.openai.com/v1"
+    ai_model: str = "gpt-4o-mini"
+    ai_temperature: float = 0.4
+    ai_timeout_seconds: float = 30.0
+    ai_max_tokens: int = 700
+    # Per-user, per-hour ceiling. Guards against a runaway client burning quota.
+    ai_requests_per_hour: int = 40
+
     # --- Content ---------------------------------------------------------
     challenges_dir: Path = REPO_ROOT / "challenges"
 
@@ -124,6 +137,13 @@ class Settings(BaseSettings):
     @property
     def github_oauth_enabled(self) -> bool:
         return bool(self.github_client_id and self.github_client_secret)
+
+    @property
+    def ai_enabled(self) -> bool:
+        """True only when a provider is selected *and* fully configured."""
+        if self.ai_provider == "disabled":
+            return False
+        return bool(self.ai_api_key and self.ai_base_url and self.ai_model)
 
     @property
     def is_production(self) -> bool:
