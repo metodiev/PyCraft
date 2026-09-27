@@ -69,7 +69,7 @@ Full instructions: [docs/development.md](docs/development.md).
 | AI assistance: hints, explanations, reviews (leak-guarded) | ✅ |
 | CI: lint, tests, sandbox security tests, content validation | ✅ |
 | Challenge authoring UI | ✅ |
-| Curriculum across all 13 tracks | ✅ 33 challenges |
+| Curriculum across all 13 tracks | ✅ 35 challenges |
 | Deeper coverage within tracks | ⏳ 1–3 per track |
 | The remaining real-world projects | ✅ 8 of 8 |
 
