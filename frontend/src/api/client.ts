@@ -137,6 +137,78 @@ export interface RubricEntry {
   description: string;
 }
 
+// --- authoring ------------------------------------------------------------
+
+/** Whether the signed-in user may author. Drives whether the UI is shown at all. */
+export interface AuthoringAccess {
+  can_author: boolean;
+  role: string;
+}
+
+export interface TrackOption {
+  id: string;
+  label: string;
+}
+
+/** One problem found in a draft, addressed to a form field. */
+export interface ValidationIssue {
+  field: string;
+  message: string;
+  severity: string;
+}
+
+export interface ValidationResult {
+  valid: boolean;
+  issues: ValidationIssue[];
+  error_count: number;
+  warning_count: number;
+}
+
+/**
+ * An authored challenge.
+ *
+ * Mirrors the backend's DraftPayload, which uses `extra="forbid"`: sending an
+ * unknown key is a 422, so this type must stay in step with the server.
+ */
+export interface DraftPayload {
+  slug: string;
+  track: string;
+  title: string;
+  summary: string;
+  difficulty: string;
+  level: string;
+  module: string;
+  points: number;
+  order_index: number;
+  time_limit_ms: number;
+  memory_limit_mb: number;
+  python_version: string;
+  skills: string[];
+  tags: string[];
+  description: string;
+  starter_code: string;
+  visible_tests: Record<string, string>;
+  hidden_tests: Record<string, string>;
+}
+
+export interface AuthoringCatalogueEntry {
+  id: string;
+  title: string;
+  track: string;
+  difficulty: string;
+  visible_tests: number;
+  hidden_tests: number;
+  points: number;
+}
+
+export interface AuthoringCatalogue {
+  total: number;
+  by_track: Record<string, number>;
+  empty_tracks: string[];
+  load_errors: string[];
+  challenges: AuthoringCatalogueEntry[];
+}
+
 export interface ProgressSummary {
   xp: number;
   level_id: string;
@@ -458,4 +530,29 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ files }),
     }),
+
+  // --- authoring ---------------------------------------------------------
+  getAuthoringAccess: (): Promise<AuthoringAccess> => request<AuthoringAccess>("/authoring/access"),
+
+  listAuthorTracks: (): Promise<TrackOption[]> => request<TrackOption[]>("/authoring/tracks"),
+
+  getAuthoringCatalogue: (): Promise<AuthoringCatalogue> =>
+    request<AuthoringCatalogue>("/authoring/catalogue"),
+
+  validateDraft: (payload: DraftPayload): Promise<ValidationResult> =>
+    request<ValidationResult>("/authoring/validate", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  publishDraft: (payload: DraftPayload): Promise<ValidationResult> =>
+    request<ValidationResult>("/authoring/publish", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  getDraft: (track: string, slug: string): Promise<DraftPayload> =>
+    request<DraftPayload>(
+      `/authoring/challenges/${encodeURIComponent(track)}/${encodeURIComponent(slug)}`,
+    ),
 };

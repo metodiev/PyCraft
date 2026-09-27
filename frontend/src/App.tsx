@@ -22,6 +22,7 @@ import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
 import { AuthCallbackPage } from "./pages/AuthCallbackPage";
 import { ProfilePage } from "./pages/ProfilePage";
+import { AuthoringPage } from "./pages/AuthoringPage";
 
 export default function App() {
   return (
@@ -41,6 +42,8 @@ export default function App() {
           <Route path="challenges/:challengeId" element={<ChallengeWorkspace />} />
           <Route path="roadmap" element={<RoadmapPage />} />
           <Route path="profile" element={<ProfilePage />} />
+          <Route path="authoring" element={<AuthoringPage />} />
+          <Route path="authoring/:track/:slug" element={<AuthoringPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

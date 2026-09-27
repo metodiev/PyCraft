@@ -1,0 +1,311 @@
+/* Challenge authoring studio.
+   Form on the left, catalogue on the right; the editors sit under the form. */
+
+.authoring {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.authoring-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.authoring-bar-left,
+.authoring-bar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.authoring-title {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+.authoring-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: var(--space-4);
+  align-items: start;
+  padding: var(--space-4);
+}
+
+@media (max-width: 1100px) {
+  .authoring-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.authoring-form {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.authoring-side {
+  position: sticky;
+  top: var(--space-4);
+}
+
+.authoring-denied {
+  display: grid;
+  gap: var(--space-3);
+  max-width: 640px;
+  margin: var(--space-6) auto;
+  padding: 0 var(--space-4);
+}
+
+/* --- field grid --------------------------------------------------------- */
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-3);
+}
+
+.field {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.field-span {
+  grid-column: 1 / -1;
+}
+
+.field-label {
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.field-hint {
+  margin: 0;
+  color: var(--text-tertiary, var(--text-secondary));
+  font-size: var(--text-xs);
+}
+
+.field-issue {
+  margin: 0;
+  color: var(--danger, #e5534b);
+  font-size: var(--text-xs);
+}
+
+.field-issue-warning {
+  color: var(--warning, #d29922);
+}
+
+.field.has-error .field-input {
+  border-color: var(--danger, #e5534b);
+}
+
+.field.has-warning .field-input {
+  border-color: var(--warning, #d29922);
+}
+
+.editor-textarea {
+  min-height: 420px;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  resize: vertical;
+}
+
+/* --- editor tabs -------------------------------------------------------- */
+.authoring-editors {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.editor-tabs {
+  display: flex;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+
+.editor-tab {
+  padding: var(--space-1) var(--space-3);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.editor-tab:hover {
+  color: var(--text-primary);
+  background: var(--bg-inset);
+}
+
+.editor-tab.is-active {
+  color: var(--text-primary);
+  background: var(--bg-inset);
+  border-color: var(--border-strong, var(--border-subtle));
+}
+
+.editor-pane-host {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/* --- test buckets ------------------------------------------------------- */
+.test-bucket {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.bucket-hint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+}
+
+.bucket-tabs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+
+.bucket-tab {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-inset);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.bucket-tab.is-active {
+  border-color: var(--border-strong, var(--border-subtle));
+}
+
+.bucket-name {
+  padding: var(--space-1) var(--space-2);
+  background: transparent;
+  border: 0;
+  color: var(--text-secondary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.bucket-tab.is-active .bucket-name {
+  color: var(--text-primary);
+}
+
+.bucket-remove {
+  padding: 0 var(--space-1);
+  background: transparent;
+  border: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.bucket-remove:hover {
+  color: var(--danger, #e5534b);
+}
+
+.bucket-name-edit {
+  display: grid;
+  gap: var(--space-1);
+  max-width: 320px;
+}
+
+/* --- validation --------------------------------------------------------- */
+.validation-panel {
+  border-left: 3px solid var(--warning, #d29922);
+}
+
+.issue-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.issue {
+  display: grid;
+  gap: 2px;
+  padding-left: var(--space-2);
+  border-left: 2px solid var(--border-subtle);
+}
+
+.issue-error {
+  border-left-color: var(--danger, #e5534b);
+}
+
+.issue-warning {
+  border-left-color: var(--warning, #d29922);
+}
+
+.issue-field {
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+}
+
+.issue-message {
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+}
+
+/* --- catalogue ---------------------------------------------------------- */
+.catalogue-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-1);
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.catalogue-item {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+}
+
+.catalogue-item:hover {
+  background: var(--bg-inset);
+}
+
+.catalogue-title {
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.catalogue-meta {
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.catalogue-empty {
+  margin-top: var(--space-2);
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+}
+
+.catalogue-empty ul {
+  margin: var(--space-1) 0 0;
+  padding-left: var(--space-3);
+}

@@ -1,0 +1,24 @@
+{
+  "id": "performance-range-sum-queries",
+  "title": "Range Sum Queries",
+  "summary": "Answer many range-sum queries in constant time using prefix sums.",
+  "difficulty": "advanced",
+  "track": "performance",
+  "module": "Complexity",
+  "level": "senior",
+  "python_version": "3.12",
+  "time_limit_ms": 8000,
+  "memory_limit_mb": 256,
+  "points": 120,
+  "order_index": 1,
+  "skills": [
+    "performance",
+    "performance.complexity"
+  ],
+  "tags": [
+    "prefix-sums",
+    "complexity",
+    "arrays"
+  ],
+  "entry_file": "solution.py"
+}

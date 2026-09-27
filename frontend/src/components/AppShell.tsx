@@ -5,11 +5,19 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useApi } from "../hooks/useApi";
 import { api } from "../api/client";
+import { useAuth } from "../auth/AuthContext";
 import { UserMenu } from "./UserMenu";
 import "./layout.css";
 
 export function AppShell() {
   const runtime = useApi(() => api.getRuntime(), []);
+  const { status } = useAuth();
+  // Only ask whether the caller may author once a session exists; the endpoint
+  // requires authentication, so a signed-out visitor would get a pointless 401.
+  const access = useApi(
+    () => (status === "authenticated" ? api.getAuthoringAccess() : Promise.resolve(null)),
+    [status],
+  );
 
   return (
     <div className="app-shell">
@@ -32,6 +40,14 @@ export function AppShell() {
           <NavLink to="/roadmap" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
             Roadmap
           </NavLink>
+          {access.data?.can_author === true && (
+            <NavLink
+              to="/authoring"
+              className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
+            >
+              Authoring
+            </NavLink>
+          )}
         </nav>
 
         <div className="runtime-badge" title="Execution environment">
