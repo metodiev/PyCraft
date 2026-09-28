@@ -1,9 +1,15 @@
 /**
  * PyCraft design system.
  *
- * A dark, IDE-adjacent palette: the platform should read as an engineering
+ * An IDE-adjacent palette: the platform should read as an engineering
  * laboratory rather than a course website. Tokens live here so components never
- * hard-code colour.
+ * hard-code colour — which is what makes a second theme a block of values
+ * rather than a rewrite.
+ *
+ * The theme is selected by `data-theme` on `<html>`, set before first paint in
+ * `index.html` and kept up to date by `lib/theme.ts`. `:root` below is the dark
+ * palette, so a document with no attribute (including one where the pre-paint
+ * script failed) renders the original look rather than an unstyled one.
  */
 
 :root {
@@ -26,16 +32,24 @@
   --accent-hover: #4cc9ba;
   --accent-dim: rgba(63, 182, 168, 0.14);
   --accent-border: rgba(63, 182, 168, 0.4);
+  /* Second stop of the brand gradient. */
+  --accent-deep: #2a7d73;
+  /* Text drawn on top of an `--accent` fill. */
+  --on-accent: #04201c;
 
   --success: #4ac97e;
   --success-dim: rgba(74, 201, 126, 0.14);
+  --success-gradient-end: #6fd99b;
   --warning: #e3b341;
   --warning-dim: rgba(227, 179, 65, 0.14);
+  --warning-gradient-end: #f0cb6a;
   --danger: #f0603a;
   --danger-dim: rgba(240, 96, 58, 0.14);
   --info: #6aa8f0;
+  --info-dim: rgba(106, 168, 240, 0.14);
 
-  /* Difficulty accents. */
+  /* Difficulty accents. Used as text on a 16% tint of themselves, so each one
+     has to stay legible against its own wash as well as the page. */
   --diff-beginner: #4ac97e;
   --diff-easy: #7fc96a;
   --diff-intermediate: #e3b341;
@@ -70,6 +84,69 @@
 
   --header-height: 52px;
   --transition: 140ms ease;
+}
+
+/**
+ * Light theme.
+ *
+ * Matching the dark palette's contrast rather than inverting it: the surfaces
+ * stay warm-neutral and the accent keeps its teal hue, but each colour is
+ * re-cut for a paper background. The status colours are deliberately darker
+ * than their dark-theme counterparts — the same green that reads clearly on
+ * #0b0e14 is unreadable on white — and the difficulty ramp is compressed,
+ * because the bright end of the dark ramp (amber, orange, coral) has too little
+ * contrast against a light surface to distinguish five separate levels.
+ *
+ * Scoped with `:root[data-theme]` so these win over the dark block above
+ * regardless of source order.
+ */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  /* Surfaces, lightest to darkest. `--bg-inset` is the recessed one, which in a
+     light theme reads as a subtly darker fill than the panel it sits in. */
+  --bg-base: #f6f7f9;
+  --bg-panel: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-inset: #eef1f5;
+  --bg-hover: #e7ebf1;
+
+  --border-subtle: #e3e7ee;
+  --border-default: #d3d9e3;
+  --border-strong: #b3bccb;
+
+  --text-primary: #1b2027;
+  --text-secondary: #566074;
+  --text-muted: #626a76;
+
+  --accent: #0d7f72;
+  --accent-hover: #0b6b60;
+  --accent-dim: rgba(13, 127, 114, 0.12);
+  --accent-border: rgba(13, 127, 114, 0.38);
+  --accent-deep: #0b5f57;
+  --on-accent: #ffffff;
+
+  --success: #137544;
+  --success-dim: rgba(19, 117, 68, 0.12);
+  --success-gradient-end: #1d9a5c;
+  --warning: #875f08;
+  --warning-dim: rgba(135, 95, 8, 0.12);
+  --warning-gradient-end: #b07f0c;
+  --danger: #c2381a;
+  --danger-dim: rgba(194, 56, 26, 0.12);
+  --info: #1f63b8;
+  --info-dim: rgba(31, 99, 184, 0.12);
+
+  --diff-beginner: #137544;
+  --diff-easy: #447311;
+  --diff-intermediate: #875f08;
+  --diff-advanced: #a1500a;
+  --diff-expert: #a8321c;
+
+  /* Shadows are far softer on a light surface; a 40% black wash reads as a
+     smudge rather than depth. */
+  --shadow-md: 0 4px 16px rgba(23, 33, 48, 0.08);
+  --shadow-lg: 0 12px 32px rgba(23, 33, 48, 0.14);
 }
 
 * {

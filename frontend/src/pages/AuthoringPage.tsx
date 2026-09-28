@@ -28,6 +28,7 @@ import type {
 import { Badge, Button, Card, CardHeader, Notice, Skeleton } from "../components";
 import { useApi } from "../hooks/useApi";
 import { registerPyCraftTheme } from "../lib/monaco";
+import { monacoThemeName, useResolvedTheme } from "../lib/theme";
 import "./authoring.css";
 
 const DRAFT_KEY = "pycraft:authoring:draft";
@@ -561,13 +562,14 @@ function CodeEditor({
   onChange: (value: string) => void;
 }) {
   const error = issues?.find((issue) => issue.severity === "error");
+  const theme = useResolvedTheme();
   return (
     <div className="editor-pane-host">
       {error !== undefined && <Notice tone="danger">{error.message}</Notice>}
       <Editor
         height="420px"
         language="python"
-        theme="pycraft-dark"
+        theme={monacoThemeName(theme)}
         value={value}
         beforeMount={registerPyCraftTheme}
         onChange={(next) => onChange(next ?? "")}

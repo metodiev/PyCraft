@@ -43,6 +43,39 @@ and forwards to `next`.
 
 Every other route is wrapped in `RequireAuth`.
 
+## Theming
+
+Colours live in `src/styles/tokens.css` as custom properties; no component
+hard-codes a colour, which is what makes a second theme a block of values rather
+than a rewrite.
+
+The switch is on the **profile page**, under Appearance — a per-device display
+preference, not part of the account, so it does not sit behind the same "Save
+changes" button as the profile details.
+
+| Piece | Responsibility |
+| --- | --- |
+| `styles/tokens.css` | The palettes. `:root` is dark; `:root[data-theme="light"]` overrides it. Both are audited to WCAG AA |
+| `lib/theme.ts` | Mode (`system` \| `light` \| `dark`), persistence under `pycraft.theme`, OS tracking, and the `useTheme` hook |
+| `components/ThemeToggle.tsx` | The radio group on the profile page |
+| `index.html` | An inline pre-paint script that sets `data-theme` before the first frame |
+
+Three details are load-bearing:
+
+- **Dark is the default in CSS.** A document with no `data-theme` renders the
+  original palette, so a blocked or failed pre-paint script degrades to a
+  supported theme instead of an unstyled one.
+- **The pre-paint script duplicates `lib/theme.ts`.** It cannot import a module,
+  because that would be fetched after the stylesheet is applied and the wrong
+  theme would flash for a frame. Changing the storage key means changing both.
+- **Monaco is themed separately.** Its colours cannot be CSS custom properties,
+  so `lib/monaco.ts` defines `pycraft-dark` and `pycraft-light` and the editors
+  pick between them with `monacoThemeName(resolved)`. Both are registered up
+  front, so switching is a prop change, not a re-registration.
+
+`e2e/theme.spec.ts` covers the behaviour end to end, including that the header
+does not offer the switch.
+
 ## Scripts
 
 ```bash

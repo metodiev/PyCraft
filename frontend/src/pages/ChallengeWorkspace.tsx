@@ -22,6 +22,7 @@ import { useApi } from "../hooks/useApi";
 import { Markdown } from "../components/Markdown";
 import { TestResults } from "../components/TestResults";
 import { registerPyCraftTheme } from "../lib/monaco";
+import { monacoThemeName, useResolvedTheme } from "../lib/theme";
 import "./workspace.css";
 
 const STORAGE_PREFIX = "pycraft:draft:";
@@ -65,6 +66,7 @@ export function ChallengeWorkspace() {
   const [queuedState, setQueuedState] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const editorRef = useRef<unknown>(null);
+  const theme = useResolvedTheme();
 
   const entryFile = challenge.data?.entry_file ?? "solution.py";
   const fileNames = useMemo(
@@ -283,7 +285,7 @@ export function ChallengeWorkspace() {
             <Editor
               height="100%"
               language="python"
-              theme="pycraft-dark"
+              theme={monacoThemeName(theme)}
               value={source}
               beforeMount={registerPyCraftTheme}
               onMount={(editor) => {

@@ -13,6 +13,7 @@ import { api, ApiError } from "../api/client";
 import type { SessionInfo } from "../api/client";
 import { Badge, Button, Card, CardHeader, EmptyState, Notice, Skeleton } from "../components";
 import { Avatar, Field, PasswordChecklist, TextArea, TextInput } from "../components/FormField";
+import { ThemeToggle } from "../components/ThemeToggle";
 import { useAuth } from "../auth/AuthContext";
 import { assessPassword } from "../auth/passwordPolicy";
 import { useApi } from "../hooks/useApi";
@@ -70,8 +71,10 @@ export function ProfilePage() {
 
       <div className="profile-grid">
         <PasswordCard hasPassword={user.has_password} />
-        <SessionsCard />
+        <AppearanceCard />
       </div>
+
+      <SessionsCard />
     </div>
   );
 }
@@ -323,6 +326,27 @@ function StatTerm({ label, value }: { label: string; value: string }) {
       <dt className="stat-label">{label}</dt>
       <dd className="stat-value">{value}</dd>
     </div>
+  );
+}
+
+/**
+ * Display preferences.
+ *
+ * Deliberately separate from `DetailsCard`: theme is stored in this browser
+ * rather than on the account, so it must not sit behind the same "Save changes"
+ * button as profile details — saving or failing to save those would otherwise
+ * appear to apply to the theme too.
+ */
+function AppearanceCard() {
+  return (
+    <Card className="profile-card">
+      <CardHeader title="Appearance" />
+      <p className="profile-hint">
+        How PyCraft looks on this device. This is saved in this browser, not on
+        your account.
+      </p>
+      <ThemeToggle />
+    </Card>
   );
 }
 

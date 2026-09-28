@@ -242,7 +242,7 @@
 
 .output-block[data-stream="stderr"] {
   border-left-color: var(--danger);
-  color: #f5b8a6;
+  color: var(--danger);
 }
 
 /* --- visible tests disclosure ------------------------------------------- */

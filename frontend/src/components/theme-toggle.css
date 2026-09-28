@@ -1,0 +1,65 @@
+/* Theme choice on the profile settings page. */
+
+.theme-choice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* A segmented control with room for labels, which a header strip does not have. */
+.theme-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.theme-options button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-2);
+  background: var(--bg-inset);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    color var(--transition);
+}
+
+.theme-options button:hover {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+/* The selected option reads as the pressed segment of the group. */
+.theme-options button[aria-checked="true"] {
+  background: var(--accent-dim);
+  border-color: var(--accent-border);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.theme-option-icon {
+  font-size: var(--text-base);
+  line-height: 1;
+}
+
+.theme-hint {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  margin: 0;
+}
+
+/* Narrow screens: keep the labels, let them wrap under the icons. */
+@media (max-width: 480px) {
+  .theme-options button {
+    flex-direction: column;
+    gap: var(--space-1);
+    font-size: var(--text-xs);
+  }
+}

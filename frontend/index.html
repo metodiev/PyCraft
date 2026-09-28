@@ -8,8 +8,30 @@
       name="description"
       content="PyCraft — an interactive Python engineering training platform that takes you from junior to principal engineer."
     />
-    <meta name="color-scheme" content="dark" />
+    <meta name="color-scheme" content="dark light" />
     <title>PyCraft — Python Engineering Lab</title>
+    <script>
+      // Resolve the theme before the first paint. Inline and synchronous on
+      // purpose: a bundled module is fetched after the stylesheet is applied,
+      // which would flash the wrong theme for a frame. This mirrors
+      // `src/lib/theme.ts` and cannot import it.
+      (function () {
+        try {
+          var choice = localStorage.getItem("pycraft.theme");
+          var theme =
+            choice === "light" || choice === "dark"
+              ? choice
+              : window.matchMedia("(prefers-color-scheme: light)").matches
+                ? "light"
+                : "dark";
+          document.documentElement.dataset.theme = theme;
+          document.documentElement.style.colorScheme = theme;
+        } catch (error) {
+          // Blocked storage or matchMedia. `tokens.css` defaults to dark, so
+          // leaving the attribute off still renders a supported theme.
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

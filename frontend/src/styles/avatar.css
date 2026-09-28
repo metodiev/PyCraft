@@ -40,9 +40,9 @@
 }
 
 .avatar-initials[data-tone="info"] {
-  background: rgba(106, 168, 240, 0.14);
+  background: var(--info-dim);
   color: var(--info);
-  border: 1px solid rgba(106, 168, 240, 0.4);
+  border: 1px solid color-mix(in srgb, var(--info) 40%, transparent);
 }
 
 /* Screen-reader-only text: keeps icon glyphs meaningful without visual noise. */

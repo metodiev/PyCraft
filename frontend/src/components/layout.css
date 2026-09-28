@@ -38,7 +38,7 @@
   width: 18px;
   height: 18px;
   border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, var(--accent), #2a7d73);
+  background: linear-gradient(135deg, var(--accent), var(--accent-deep));
 }
 
 .app-nav {
