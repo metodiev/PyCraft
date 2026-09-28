@@ -174,7 +174,16 @@ class Settings(BaseSettings):
     # Ceiling applied regardless of what a challenge requests. A challenge can
     # lower these limits but never raise them.
     max_time_limit_ms: int = 10_000
-    max_memory_limit_mb: int = 512
+    # Keeps one submission from harming the sandbox host or the API container.
+    # Every challenge's ``memory_limit_mb`` is clamped to this (see
+    # ``ExecutionLimits.clamped``), so it is the real per-submission ceiling
+    # regardless of what content declares.
+    #
+    # Do not lower this below ~48 MB: CPython plus pytest alone need ~33 MB
+    # before a single line of learner code runs, and the heaviest suite in
+    # ``challenges/`` peaks near 46 MB. Below roughly 64 MB the platform starts
+    # failing ordinary submissions rather than abusive ones.
+    max_memory_limit_mb: int = 100
     max_output_bytes: int = 64 * 1024
     # Number of submissions that may run concurrently. Guards the host from a
     # submission storm; the queue upstream is intentionally simple for the MVP.
@@ -193,7 +202,9 @@ class Settings(BaseSettings):
 
     # --- Defaults for challenges lacking explicit limits -----------------
     default_time_limit_ms: int = 5_000
-    default_memory_limit_mb: int = 128
+    # Matches the ceiling above, so the fallback never asks for more memory
+    # than the platform will actually grant.
+    default_memory_limit_mb: int = 100
 
     @field_validator("challenges_dir", "tutorials_dir", "database_url", mode="before")
     @classmethod

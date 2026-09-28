@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 
-from app.api.deps import OptionalUser, RepositoryDep, SessionDep
+from app.api.deps import OptionalUser, RepositoryDep, SessionDep, SettingsDep
 from app.models import ChallengeProgress, ProgressStatus, User
 from app.schemas import ChallengeDetail, ChallengeSummary
 
@@ -45,6 +45,7 @@ async def get_challenge(
     session: SessionDep,
     repository: RepositoryDep,
     user: OptionalUser,
+    settings: SettingsDep,
 ) -> ChallengeDetail:
     """Return challenge material. Hidden tests are never included."""
     try:
@@ -64,7 +65,10 @@ async def get_challenge(
         starter_code=challenge.files.starter,
         entry_file=challenge.entry_file,
         time_limit_ms=challenge.time_limit_ms,
-        memory_limit_mb=challenge.memory_limit_mb,
+        # Clamped to the platform ceiling so the workspace never advertises
+        # more memory than the sandbox will actually grant. All 35 challenges
+        # currently declare 128 or 256 MB, so every one of them is clamped here.
+        memory_limit_mb=min(challenge.memory_limit_mb, settings.max_memory_limit_mb),
         visible_tests=challenge.files.visible_tests,
         # ``kind`` and ``is_project`` already come from the summary projection.
         # Single-file challenges expose just the entry, so the editor does not

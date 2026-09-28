@@ -149,7 +149,7 @@ file. The ones you are most likely to need:
 | `PYCRAFT_CHALLENGES_DIR` | `./challenges` | Challenge content root |
 | `PYCRAFT_EXECUTION_CONCURRENCY` | `4` | Max simultaneous sandboxes |
 | `PYCRAFT_MAX_TIME_LIMIT_MS` | `10000` | Hard ceiling a challenge cannot exceed |
-| `PYCRAFT_MAX_MEMORY_LIMIT_MB` | `512` | Hard ceiling a challenge cannot exceed |
+| `PYCRAFT_MAX_MEMORY_LIMIT_MB` | `100` | Hard ceiling a challenge cannot exceed |
 | `PYCRAFT_CORS_ORIGINS` | localhost:5173 | Comma-separated allowed origins |
 | `PYCRAFT_ENVIRONMENT` | `development` | `development` \| `test` \| `production` |
 

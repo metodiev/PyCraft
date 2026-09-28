@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+from app.core.config import Settings
 from httpx import AsyncClient
 from tests.conftest import (
     FakeExecutionBackend,
@@ -68,6 +69,24 @@ async def test_challenge_detail_exposes_starter_but_not_hidden_tests(anon_client
     serialised = response.text
     assert "test_hidden" not in serialised
     assert "test_empty" not in serialised
+
+
+@pytest.mark.asyncio
+async def test_challenge_detail_reports_the_effective_memory_limit(
+    anon_client: AsyncClient, settings: Settings
+) -> None:
+    """The workspace must not advertise a budget the sandbox will not grant.
+
+    The fixture challenge declares 128 MB, which before the cap was exactly what
+    it got. Now the ceiling clamps it, and the number the UI renders has to be
+    the clamped one — otherwise a learner is told they have 128 MB while the
+    container is killed at 100 MB.
+    """
+    response = await anon_client.get(f"/api/v1/challenges/{CHALLENGE}")
+    assert response.status_code == 200
+
+    assert response.json()["memory_limit_mb"] == settings.max_memory_limit_mb
+    assert response.json()["memory_limit_mb"] <= settings.max_memory_limit_mb
 
 
 @pytest.mark.asyncio

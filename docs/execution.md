@@ -120,11 +120,27 @@ Per execution, from the challenge metadata, clamped by platform ceilings:
 | Resource | Mechanism | Default | Ceiling |
 | --- | --- | --- | --- |
 | Wall clock | In-container subprocess timeout | challenge value | 10 s |
-| Memory | `--memory` + `--memswap` (swap disabled) | 128 MB | 512 MB |
+| Memory | `--memory` + `--memswap` (swap disabled) | 128 MB (clamped to 100 MB) | 100 MB |
 | CPU | `--cpus` | 1.0 | — |
 | Processes | `--pids-limit` | 64 | — |
 | Scratch space | tmpfs size | 64 MB | — |
 | Output | Truncated server-side | 64 KB | — |
+
+The memory ceiling is deliberately low because a submission runs on the same
+host as the API container and the PyCraft portal: an unbounded run is a
+denial-of-service against the platform itself, not just against the learner.
+100 MB is comfortably above what a challenge actually needs — CPython plus
+pytest need roughly 33 MB before any learner code executes, and the heaviest
+suite in `challenges/` peaks near 46 MB — while bounding the worst case at
+`worker_concurrency × 100 MB`.
+
+Two consequences are worth knowing when authoring:
+
+* A challenge may ask for **less** than the ceiling, never more. All 35
+  challenges currently declare 128 or 256 MB, so every one is clamped to
+  100 MB — the declared value only takes effect below the ceiling.
+* The learner-facing workspace shows the **clamped** value, so the number in the
+  editor header always matches what the container is actually given.
 
 ## Adding a Python version
 

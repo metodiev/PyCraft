@@ -46,6 +46,11 @@ platform ceilings (`max_time_limit_ms`, `max_memory_limit_mb`). A malicious or
 careless challenge file at worst _lowers_ its own budget; it can never raise the
 host's.
 
+The memory ceiling defaults to **100 MB** and exists to protect the host, not
+merely the learner: a sandbox shares a host with the API container and the
+PyCraft portal, so an unbounded submission is a denial-of-service against the
+platform. The worst case is `worker_concurrency × max_memory_limit_mb`.
+
 Execution is also bounded by a semaphore (`execution_concurrency`) so a
 submission flood degrades throughput rather than exhausting the host.
 

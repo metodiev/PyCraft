@@ -71,12 +71,17 @@ included in any response.**
   "starter_code": "def greet(name: str) -> str:\n    …",
   "entry_file": "solution.py",
   "time_limit_ms": 5000,
-  "memory_limit_mb": 128,
+  "memory_limit_mb": 100,
   "visible_tests": { "test_visible.py": "from solution import greet\n…" }
 }
 ```
 
 `404` if the challenge does not exist.
+
+`memory_limit_mb` is the **effective** limit — the challenge's declared value
+after clamping to `PYCRAFT_MAX_MEMORY_LIMIT_MB` (100 MB by default). The
+`hello-world` challenge declares 128 MB in its `metadata.json` and is reported
+here as 100 MB. See [execution.md](execution.md) for why the ceiling exists.
 
 ## Tutorials
 

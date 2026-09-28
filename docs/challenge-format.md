@@ -50,7 +50,7 @@ challenges/<track>/<slug>/
 | `level` | | `junior` \| `intermediate` \| `senior` \| `staff` \| `principal` |
 | `python_version` | | Defaults to `3.12` |
 | `time_limit_ms` | | Defaults to 5000; **clamped** to the platform ceiling |
-| `memory_limit_mb` | | Defaults to 128; **clamped** to the platform ceiling |
+| `memory_limit_mb` | | Defaults to 128; **clamped** to the platform ceiling (100 MB) |
 | `points` | | XP awarded on first pass |
 | `order_index` | | Sort order within the track |
 | `skills` | | Dotted skill ids — these drive the dashboard skill graph |
