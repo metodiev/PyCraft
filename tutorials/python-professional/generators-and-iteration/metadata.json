@@ -1,0 +1,13 @@
+{
+  "id": "python-professional-generators-and-iteration",
+  "title": "Generators, Lazy Pipelines and Memory",
+  "summary": "Stream data with the iterator protocol and yield, and build multi-stage generator pipelines that never materialise the whole input.",
+  "track": "python-professional",
+  "difficulty": "advanced",
+  "level": "intermediate",
+  "order_index": 3,
+  "reading_minutes": 5,
+  "tags": ["generators", "iterators", "laziness", "streaming"],
+  "skills": ["python.generators", "python.professional"],
+  "related_challenge": "python-professional-lazy-batch-pipeline"
+}

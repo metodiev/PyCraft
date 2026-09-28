@@ -1,0 +1,13 @@
+{
+  "id": "python-fundamentals-strings-and-formatting",
+  "title": "Strings, Bytes and Text Formatting",
+  "summary": "Handle the str/bytes boundary, format output with f-string specs, and parse delimited text without breaking on a quoted comma.",
+  "track": "python-fundamentals",
+  "difficulty": "beginner",
+  "level": "junior",
+  "order_index": 3,
+  "reading_minutes": 5,
+  "tags": ["strings", "bytes", "formatting", "parsing"],
+  "skills": ["python.strings", "python.fundamentals"],
+  "related_challenge": "python-fundamentals-csv-line-parser"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "web-development-url-and-query-encoding",
+  "title": "URLs, Query Strings and Percent-Encoding",
+  "summary": "Encode and decode URLs correctly: reserved characters, path versus query rules, repeated parameters, and why string concatenation breaks.",
+  "track": "web-development",
+  "difficulty": "intermediate",
+  "level": "intermediate",
+  "order_index": 3,
+  "reading_minutes": 4,
+  "tags": [
+    "url",
+    "percent-encoding",
+    "query-strings",
+    "http"
+  ],
+  "skills": [
+    "web.http",
+    "python.urllib"
+  ],
+  "related_challenge": "web-development-query-string-codec"
+}

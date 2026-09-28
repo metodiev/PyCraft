@@ -37,6 +37,12 @@ export function AppShell() {
           >
             Challenges
           </NavLink>
+          <NavLink
+            to="/tutorials"
+            className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
+          >
+            Tutorials
+          </NavLink>
           <NavLink to="/roadmap" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
             Roadmap
           </NavLink>

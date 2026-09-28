@@ -1,0 +1,22 @@
+{
+  "id": "system-design-tradeoff-analysis",
+  "title": "Trade-off Analysis: CAP, PACELC and Honest Choices",
+  "summary": "Reason about what a system does while partitioned and in normal operation, and record the choice with its rejected options so it stays a decision rather than an accident.",
+  "track": "system-design",
+  "difficulty": "advanced",
+  "level": "staff",
+  "order_index": 2,
+  "reading_minutes": 4,
+  "tags": [
+    "cap",
+    "pacelc",
+    "consistency",
+    "availability",
+    "replication"
+  ],
+  "skills": [
+    "system_design.tradeoffs",
+    "system_design"
+  ],
+  "related_challenge": "system-design-replicated-log"
+}

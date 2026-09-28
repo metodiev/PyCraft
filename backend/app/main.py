@@ -23,6 +23,7 @@ from app.api import (
     github,
     runtime,
     submissions,
+    tutorials,
 )
 from app.core.config import Settings, get_settings
 from app.db.migrations import prepare_schema
@@ -33,6 +34,7 @@ from app.execution.local_backend import LocalExecutionBackend
 from app.execution.models import ExecutionError
 from app.models import Challenge
 from app.services.challenges import ChallengeFormatError, ChallengeRepository
+from app.services.tutorials import TutorialRepository
 from app.services.workers import WorkerPool
 
 logger = logging.getLogger(__name__)
@@ -112,6 +114,19 @@ async def lifespan(app: FastAPI):
         logger.error("Challenge catalogue failed to load: %s", exc)
     app.state.challenges = repository
 
+    # Tutorials are read-only content with no database projection, so the
+    # in-memory catalogue is the whole story. A failure here must not stop the
+    # platform from serving challenges.
+    tutorial_repository = TutorialRepository(settings.tutorials_dir)
+    try:
+        loaded_tutorials = tutorial_repository.load_all()
+        for problem in tutorial_repository.errors:
+            logger.error("Tutorial content problem: %s", problem)
+        logger.info("Indexed %d tutorials", len(loaded_tutorials))
+    except (OSError, ValueError) as exc:
+        logger.error("Tutorial catalogue failed to load: %s", exc)
+    app.state.tutorials = tutorial_repository
+
     # A pre-injected backend (used by tests) takes precedence over the
     # configured one, so the suite can exercise the API without a sandbox.
     backend = getattr(app.state, "execution_backend", None) or build_execution_backend(settings)
@@ -172,6 +187,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         github.router,
         authoring.router,
         challenges.router,
+        tutorials.router,
         submissions.router,
         dashboard.router,
         gamification.router,

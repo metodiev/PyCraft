@@ -22,6 +22,7 @@ from app.models.roles import UserRole
 from app.services.auth import AuthService
 from app.services.challenges import ChallengeRepository
 from app.services.email import EmailSender
+from app.services.tutorials import TutorialRepository
 
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
 
@@ -47,6 +48,16 @@ def get_repository(request: Request) -> ChallengeRepository:
     return request.app.state.challenges
 
 
+def get_tutorial_repository(request: Request) -> TutorialRepository:
+    repository = getattr(request.app.state, "tutorials", None)
+    if repository is None:  # pragma: no cover - lifespan always installs one
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Tutorial catalogue is not available",
+        )
+    return repository
+
+
 def get_emailer(settings: SettingsDep) -> EmailSender:
     return EmailSender(settings)
 
@@ -60,6 +71,7 @@ def get_auth_service(
 SettingsDep = Annotated[Settings, Depends(get_settings_dep)]
 BackendDep = Annotated[ExecutionBackend, Depends(get_backend)]
 RepositoryDep = Annotated[ChallengeRepository, Depends(get_repository)]
+TutorialRepoDep = Annotated[TutorialRepository, Depends(get_tutorial_repository)]
 EmailerDep = Annotated[EmailSender, Depends(get_emailer)]
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
 

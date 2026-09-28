@@ -1,0 +1,21 @@
+{
+  "id": "software-architecture-hexagonal-architecture",
+  "title": "Ports and Adapters: Keeping the Domain Clean",
+  "summary": "Put the domain at the centre, define ports it owns, invert dependencies so storage depends on the domain, and know when the pattern is not worth its cost.",
+  "track": "software-architecture",
+  "difficulty": "advanced",
+  "level": "principal",
+  "order_index": 2,
+  "reading_minutes": 4,
+  "tags": [
+    "ports-and-adapters",
+    "hexagonal",
+    "dependency-inversion",
+    "testability"
+  ],
+  "skills": [
+    "architecture.separation",
+    "architecture.boundaries"
+  ],
+  "related_challenge": "software-architecture-multi-tenant-saas"
+}

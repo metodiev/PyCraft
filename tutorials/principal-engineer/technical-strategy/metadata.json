@@ -1,0 +1,21 @@
+{
+  "id": "principal-engineer-technical-strategy",
+  "title": "Technical Strategy and Long-Lived Decisions",
+  "summary": "Spend your attention on irreversible decisions, record them with rejected options and revisit triggers, and set direction teams can act on without asking you.",
+  "track": "principal-engineer",
+  "difficulty": "advanced",
+  "level": "principal",
+  "order_index": 1,
+  "reading_minutes": 4,
+  "tags": [
+    "strategy",
+    "decision-records",
+    "communication",
+    "architecture"
+  ],
+  "skills": [
+    "leadership.strategy",
+    "architecture.decisions"
+  ],
+  "related_challenge": "principal-engineer-canary-rollout"
+}

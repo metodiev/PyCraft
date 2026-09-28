@@ -1,0 +1,22 @@
+{
+  "id": "system-design-capacity-planning",
+  "title": "Capacity Planning: From QPS to Machines",
+  "summary": "Work a capacity estimate end to end — users to QPS to peak load to fleet size — with stated assumptions, a utilisation target and Little's law as a sanity check.",
+  "track": "system-design",
+  "difficulty": "advanced",
+  "level": "staff",
+  "order_index": 1,
+  "reading_minutes": 5,
+  "tags": [
+    "capacity",
+    "qps",
+    "queueing",
+    "slo",
+    "estimation"
+  ],
+  "skills": [
+    "system_design.capacity",
+    "system_design"
+  ],
+  "related_challenge": "principal-engineer-capacity-cost-planner"
+}

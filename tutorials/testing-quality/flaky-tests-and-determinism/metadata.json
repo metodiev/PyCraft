@@ -1,0 +1,21 @@
+{
+  "id": "testing-quality-flaky-tests-and-determinism",
+  "title": "Determinism: Why Tests Flake and How to Stop It",
+  "summary": "Find the sources of non-determinism in a test suite, inject time and randomness instead of calling them, and reproduce a flake on demand.",
+  "track": "testing-quality",
+  "difficulty": "advanced",
+  "level": "senior",
+  "order_index": 3,
+  "reading_minutes": 4,
+  "tags": [
+    "flaky",
+    "determinism",
+    "testing",
+    "seeding"
+  ],
+  "skills": [
+    "testing.quality",
+    "testing.ci"
+  ],
+  "related_challenge": "testing-quality-flaky-test-detector"
+}

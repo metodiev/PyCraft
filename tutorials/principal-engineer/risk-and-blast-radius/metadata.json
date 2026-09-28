@@ -1,0 +1,21 @@
+{
+  "id": "principal-engineer-risk-and-blast-radius",
+  "title": "Risk, Blast Radius and Fault Isolation",
+  "summary": "Ask what fails alongside a component, shrink the answer with cells and bulkheads, and find the shared resources that re-couple supposedly independent services.",
+  "track": "principal-engineer",
+  "difficulty": "advanced",
+  "level": "principal",
+  "order_index": 2,
+  "reading_minutes": 5,
+  "tags": [
+    "blast-radius",
+    "fault-isolation",
+    "cells",
+    "circuit-breakers"
+  ],
+  "skills": [
+    "leadership.risk",
+    "reliability.fault-isolation"
+  ],
+  "related_challenge": "principal-engineer-blast-radius"
+}

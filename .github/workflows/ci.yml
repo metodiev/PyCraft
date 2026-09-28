@@ -158,3 +158,35 @@ jobs:
                   f"{challenge.hidden_test_count} hidden"
               )
           PY
+
+      - name: Validate tutorial format
+        # Also checks that a tutorial's related_challenge really exists, so a
+        # rename cannot silently leave a dead "Practise this" link.
+        env:
+          PYTHONPATH: .
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from app.services.challenges import ChallengeRepository
+          from app.services.tutorials import TutorialRepository
+
+          tutorial_repository = TutorialRepository(Path("../tutorials"))
+          tutorials = tutorial_repository.load_all(strict=True)
+          challenge_ids = {
+              challenge.id
+              for challenge in ChallengeRepository(Path("../challenges")).load_all(strict=True)
+          }
+
+          print(f"Validated {len(tutorials)} tutorials")
+          for tutorial in tutorials:
+              print(f"  {tutorial.id}: {tutorial.word_count} words, {tutorial.reading_minutes} min")
+
+          broken = [
+              f"{tutorial.id} -> {tutorial.related_challenge}"
+              for tutorial in tutorials
+              if tutorial.related_challenge and tutorial.related_challenge not in challenge_ids
+          ]
+          if broken:
+              raise SystemExit("Unknown related_challenge: " + ", ".join(broken))
+          PY

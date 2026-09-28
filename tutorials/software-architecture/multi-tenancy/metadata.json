@@ -1,0 +1,21 @@
+{
+  "id": "software-architecture-multi-tenancy",
+  "title": "Designing Multi-Tenant Systems",
+  "summary": "Choose an isolation model, take tenant identity from the authenticated context, enforce tenancy at every layer, and handle per-tenant noise and lifecycle.",
+  "track": "software-architecture",
+  "difficulty": "expert",
+  "level": "principal",
+  "order_index": 3,
+  "reading_minutes": 5,
+  "tags": [
+    "multi-tenancy",
+    "isolation",
+    "row-level-security",
+    "saas"
+  ],
+  "skills": [
+    "architecture.isolation",
+    "architecture.separation"
+  ],
+  "related_challenge": "software-architecture-multi-tenant-saas"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "backend-engineering-service-layering",
+  "title": "Layering a Service: Routing, Domain and Assembly",
+  "summary": "Separate transport, domain logic and wiring so business rules are testable without a server and each layer has exactly one reason to change.",
+  "track": "backend-engineering",
+  "difficulty": "intermediate",
+  "level": "senior",
+  "order_index": 1,
+  "reading_minutes": 4,
+  "tags": ["layering", "architecture", "dependency-inversion", "testability"],
+  "skills": ["backend.service_design", "backend", "architecture.separation"],
+  "related_challenge": "backend-engineering-rest-api-service"
+}

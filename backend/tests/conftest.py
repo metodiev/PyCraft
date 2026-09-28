@@ -152,12 +152,53 @@ def challenges_dir(tmp_path: Path) -> Path:
     return root
 
 
+def write_tutorial(
+    root: Path,
+    *,
+    track: str = "python-fundamentals",
+    slug: str = "test-tutorial",
+    tutorial_id: str = "python-fundamentals-test-tutorial",
+    difficulty: str = "beginner",
+    extra_metadata: dict | None = None,
+    body: str = "# Test tutorial\n\nRead this, then practise.\n",
+) -> Path:
+    """Materialise a minimal but valid tutorial on disk."""
+    path = root / track / slug
+    path.mkdir(parents=True)
+
+    metadata = {
+        "id": tutorial_id,
+        "title": slug.replace("-", " ").title(),
+        "summary": "A test tutorial.",
+        "track": track,
+        "difficulty": difficulty,
+        "level": "junior",
+        "order_index": 1,
+        "reading_minutes": 5,
+        "tags": ["test"],
+        "skills": ["python.basics"],
+    }
+    metadata.update(extra_metadata or {})
+    (path / "metadata.json").write_text(json.dumps(metadata), encoding="utf-8")
+    (path / "tutorial.md").write_text(body, encoding="utf-8")
+    return path
+
+
 @pytest.fixture
-def settings(tmp_path: Path, challenges_dir: Path) -> Settings:
+def tutorials_dir(tmp_path: Path) -> Path:
+    root = tmp_path / "tutorials"
+    root.mkdir()
+    write_tutorial(root)
+    return root
+
+
+@pytest.fixture
+def settings(tmp_path: Path, challenges_dir: Path, tutorials_dir: Path) -> Settings:
     return Settings(
         environment="test",
         database_url=f"sqlite+aiosqlite:///{tmp_path / 'test.db'}",
         challenges_dir=challenges_dir,
+        tutorials_dir=tutorials_dir,
         execution_backend="local",
         execution_concurrency=2,
         # Fixed key so tokens survive across requests within a test.

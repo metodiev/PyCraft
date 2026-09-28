@@ -1,0 +1,13 @@
+{
+  "id": "cloud-devops-infrastructure-as-code",
+  "title": "Infrastructure as Code and Plan/Apply",
+  "summary": "Read a plan as a diff between declared configuration and observed reality, classify which changes replace resources, and keep state locked, remote and reconciled against drift.",
+  "track": "cloud-devops",
+  "difficulty": "advanced",
+  "level": "senior",
+  "order_index": 2,
+  "reading_minutes": 5,
+  "tags": ["terraform", "iac", "plan", "state", "drift"],
+  "skills": ["devops.terraform", "devops"],
+  "related_challenge": "cloud-devops-terraform-plan-diff"
+}

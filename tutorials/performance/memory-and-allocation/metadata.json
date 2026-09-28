@@ -1,0 +1,13 @@
+{
+  "id": "performance-memory-and-allocation",
+  "title": "Memory Behaviour: Objects, References and Leaks",
+  "summary": "Track what keeps objects alive in CPython, measure real growth with tracemalloc, fix accidental leaks and bound peak memory with streaming.",
+  "track": "performance",
+  "difficulty": "advanced",
+  "level": "staff",
+  "order_index": 3,
+  "reading_minutes": 4,
+  "tags": ["memory", "references", "garbage-collection", "tracemalloc"],
+  "skills": ["performance", "performance.memory"],
+  "related_challenge": "performance-range-sum-queries"
+}

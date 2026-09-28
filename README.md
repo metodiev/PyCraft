@@ -4,7 +4,7 @@ PyCraft is an interactive Python engineering platform that takes developers from
 **Junior Python Developer** to **Senior, Staff, Principal Engineer and Software
 Architect** through progressively harder practical challenges.
 
-It is not a tutorial site. The core loop is:
+It is not a tutorial site that grades reading. The core loop is:
 
 ```
 Learn → Code → Execute → Test → Debug → Improve → Progress
@@ -13,6 +13,11 @@ Learn → Code → Execute → Test → Debug → Improve → Progress
 You write real Python in the browser, it runs in an isolated sandbox, and it is
 graded against visible **and hidden** test suites. Completion is earned by
 passing tests, never by marking a lesson read.
+
+There is a [Tutorials](tutorials/) section for the concepts behind each track —
+one place to read about Python and the technologies around it before you code.
+Tutorials carry no XP and no points; the only thing they track is what you have
+already read, so you can see where you left off.
 
 ## How it works
 
@@ -70,6 +75,7 @@ Full instructions: [docs/development.md](docs/development.md).
 | CI: lint, tests, sandbox security tests, content validation | ✅ |
 | Challenge authoring UI | ✅ |
 | Curriculum across all 13 tracks | ✅ 35 challenges |
+| Tutorials: concepts per track, with read tracking | ✅ 39 articles |
 | Deeper coverage within tracks | ⏳ 1–3 per track |
 | The remaining real-world projects | ✅ 8 of 8 |
 
@@ -84,6 +90,7 @@ backend/     FastAPI service — catalogue, scoring, progress, execution dispatc
     services/    Challenge loading, scoring, roadmap, submission orchestration
     schemas/     Pydantic request/response contracts
 challenges/  Challenge content, authored as files and indexed at startup
+tutorials/   Tutorial content, authored as files and indexed at startup
 frontend/    React + TypeScript + Vite + Monaco
 runner/      The Python 3.12 execution image and its entrypoint
 docs/        Architecture, security, API, execution, database, testing, deployment
@@ -133,6 +140,25 @@ challenges/<track>/<slug>/
 
 See [docs/challenge-format.md](docs/challenge-format.md). CI validates the format
 and rejects malformed content.
+
+## Adding a tutorial
+
+Tutorials are directories too, and follow the same review-by-pull-request flow:
+
+```
+tutorials/<track>/<slug>/
+├── metadata.json   # id, title, summary, difficulty, tags, related challenge
+└── tutorial.md     # the article body (Markdown)
+```
+
+The loader rejects a tutorial whose `id` does not equal `<track>-<slug>`, whose
+track is not one of the 13 known tracks, or whose `tutorial.md` is missing or
+empty. Reading time is taken from `reading_minutes`, or estimated from length
+when omitted.
+
+Lesson content uses a deliberately small Markdown subset — headings, paragraphs,
+lists, tables, fenced code, inline code, bold/italic, links and `<details>`
+hints. See [docs/architecture.md](docs/architecture.md#tutorial-format).
 
 ## License
 

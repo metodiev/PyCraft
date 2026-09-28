@@ -1,0 +1,13 @@
+{
+  "id": "python-fundamentals-collections-and-iteration",
+  "title": "Lists, Dicts and the Cost of Lookup",
+  "summary": "Choose between lists, tuples, sets and dicts by their lookup cost, and stop writing the loop that performs a linear scan on every iteration.",
+  "track": "python-fundamentals",
+  "difficulty": "beginner",
+  "level": "junior",
+  "order_index": 2,
+  "reading_minutes": 5,
+  "tags": ["collections", "dicts", "sets", "performance"],
+  "skills": ["python.collections", "python.fundamentals"],
+  "related_challenge": "python-fundamentals-dedupe-preserving-order"
+}

@@ -1,0 +1,23 @@
+{
+  "id": "async-concurrency-asyncio-fundamentals",
+  "title": "asyncio: The Event Loop, Tasks and await",
+  "summary": "Understand single-threaded concurrency, task scheduling and cancellation so async code stops surprising you.",
+  "track": "async-concurrency",
+  "difficulty": "intermediate",
+  "level": "senior",
+  "order_index": 1,
+  "reading_minutes": 4,
+  "tags": [
+    "asyncio",
+    "event-loop",
+    "tasks",
+    "cancellation",
+    "concurrency"
+  ],
+  "skills": [
+    "async.asyncio",
+    "async.concurrency",
+    "async"
+  ],
+  "related_challenge": "async-concurrency-async-job-queue"
+}

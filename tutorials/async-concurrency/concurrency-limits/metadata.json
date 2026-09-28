@@ -1,0 +1,23 @@
+{
+  "id": "async-concurrency-concurrency-limits",
+  "title": "Backpressure: Semaphores, Queues and Bounded Work",
+  "summary": "Bound in-flight work with semaphores and queues so unbounded concurrency cannot exhaust memory or melt a dependency.",
+  "track": "async-concurrency",
+  "difficulty": "advanced",
+  "level": "senior",
+  "order_index": 2,
+  "reading_minutes": 5,
+  "tags": [
+    "backpressure",
+    "semaphore",
+    "queues",
+    "worker-pool",
+    "asyncio"
+  ],
+  "skills": [
+    "async.asyncio",
+    "async.concurrency",
+    "async"
+  ],
+  "related_challenge": "async-concurrency-async-semaphore-pool"
+}

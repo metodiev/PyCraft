@@ -1,0 +1,13 @@
+{
+  "id": "cloud-devops-ci-cd-pipelines",
+  "title": "CI/CD Pipelines: Stages, Gates and Scheduling",
+  "summary": "Model a pipeline as a dependency graph, pass artifacts instead of rebuilding, make required gates trustworthy, and roll a deploy out with a canary you can roll back.",
+  "track": "cloud-devops",
+  "difficulty": "intermediate",
+  "level": "senior",
+  "order_index": 3,
+  "reading_minutes": 5,
+  "tags": ["ci", "cd", "pipelines", "dag", "canary"],
+  "skills": ["devops.ci", "devops"],
+  "related_challenge": "cloud-devops-ci-pipeline-scheduler"
+}

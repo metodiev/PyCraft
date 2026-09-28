@@ -1,0 +1,21 @@
+{
+  "id": "software-architecture-solid-and-boundaries",
+  "title": "SOLID and the Boundaries That Matter",
+  "summary": "Use each SOLID principle for the pain it actually addresses, and weigh what every boundary costs to maintain before drawing one.",
+  "track": "software-architecture",
+  "difficulty": "advanced",
+  "level": "principal",
+  "order_index": 1,
+  "reading_minutes": 5,
+  "tags": [
+    "solid",
+    "boundaries",
+    "abstraction",
+    "coupling"
+  ],
+  "skills": [
+    "architecture.boundaries",
+    "architecture.separation"
+  ],
+  "related_challenge": "software-architecture-multi-tenant-saas"
+}

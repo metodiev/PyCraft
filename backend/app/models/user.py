@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from app.models.gamification import UserAchievement
     from app.models.progress import ChallengeProgress, SkillProgress
     from app.models.submission import Submission
+    from app.models.tutorial import TutorialRead
 
 
 class User(Base, TimestampMixin):
@@ -66,6 +67,9 @@ class User(Base, TimestampMixin):
         back_populates="user", cascade="all, delete-orphan"
     )
     achievements: Mapped[list[UserAchievement]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    tutorial_reads: Mapped[list[TutorialRead]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
 

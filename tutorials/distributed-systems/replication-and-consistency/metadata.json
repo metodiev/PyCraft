@@ -1,0 +1,13 @@
+{
+  "id": "distributed-systems-replication-and-consistency",
+  "title": "Replication, Quorums and Consistency Models",
+  "summary": "Choose a replication topology for the failure you actually have, reason about what a quorum guarantees, and expose session guarantees instead of vague eventual consistency.",
+  "track": "distributed-systems",
+  "difficulty": "advanced",
+  "level": "staff",
+  "order_index": 1,
+  "reading_minutes": 6,
+  "tags": ["replication", "quorum", "consistency", "read-your-writes", "replication-lag"],
+  "skills": ["distributed.replication", "distributed.consistency", "distributed"],
+  "related_challenge": "distributed-systems-notification-fanout"
+}

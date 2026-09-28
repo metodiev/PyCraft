@@ -1,0 +1,13 @@
+{
+  "id": "performance-algorithmic-complexity",
+  "title": "Complexity in Practice: Choosing the Right Shape",
+  "summary": "Read big-O as a growth prediction, weigh amortised cost and time-space trade-offs, and pick a data-structure shape that matches the real query workload.",
+  "track": "performance",
+  "difficulty": "intermediate",
+  "level": "senior",
+  "order_index": 1,
+  "reading_minutes": 4,
+  "tags": ["complexity", "big-o", "data-structures", "prefix-sums"],
+  "skills": ["performance", "performance.complexity"],
+  "related_challenge": "performance-range-sum-queries"
+}

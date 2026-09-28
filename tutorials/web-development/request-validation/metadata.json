@@ -1,0 +1,21 @@
+{
+  "id": "web-development-request-validation",
+  "title": "Validating Requests at the Boundary",
+  "summary": "Parse untrusted input into typed objects once at the edge, report every field error together, and stop identity forgery at the door.",
+  "track": "web-development",
+  "difficulty": "intermediate",
+  "level": "intermediate",
+  "order_index": 2,
+  "reading_minutes": 5,
+  "tags": [
+    "validation",
+    "api",
+    "errors",
+    "input-handling"
+  ],
+  "skills": [
+    "web.validation",
+    "web.api-design"
+  ],
+  "related_challenge": "web-development-validated-microservice"
+}

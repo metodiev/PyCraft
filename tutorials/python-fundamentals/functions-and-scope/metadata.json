@@ -1,0 +1,13 @@
+{
+  "id": "python-fundamentals-functions-and-scope",
+  "title": "Functions, Arguments and Scope",
+  "summary": "Pass arguments correctly — positionally, by keyword, with defaults — and know exactly which name a line of code resolves to.",
+  "track": "python-fundamentals",
+  "difficulty": "beginner",
+  "level": "junior",
+  "order_index": 1,
+  "reading_minutes": 9,
+  "tags": ["functions", "scope", "arguments"],
+  "skills": ["python.functions", "python.fundamentals"],
+  "related_challenge": "python-fundamentals-hello-world"
+}

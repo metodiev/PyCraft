@@ -1,0 +1,21 @@
+{
+  "id": "testing-quality-pytest-fundamentals",
+  "title": "pytest Fundamentals: Assertions, Fixtures and Parametrisation",
+  "summary": "Write pytest suites that fail with useful output: bare asserts, scoped fixtures, parametrised tables and precise exception checks.",
+  "track": "testing-quality",
+  "difficulty": "easy",
+  "level": "intermediate",
+  "order_index": 1,
+  "reading_minutes": 4,
+  "tags": [
+    "pytest",
+    "testing",
+    "fixtures",
+    "parametrisation"
+  ],
+  "skills": [
+    "testing.pytest",
+    "testing.quality"
+  ],
+  "related_challenge": "testing-quality-property-checking-loop"
+}

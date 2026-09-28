@@ -1,0 +1,13 @@
+{
+  "id": "cloud-devops-containers-and-images",
+  "title": "Containers, Images and Layer Caching",
+  "summary": "Reason about images as stacks of immutable layers so you can predict which layers a rebuild reuses, shrink the runtime image and stop shipping untested tags.",
+  "track": "cloud-devops",
+  "difficulty": "intermediate",
+  "level": "senior",
+  "order_index": 1,
+  "reading_minutes": 5,
+  "tags": ["docker", "images", "layers", "caching", "multi-stage"],
+  "skills": ["devops.docker", "devops"],
+  "related_challenge": "cloud-devops-docker-layer-cache"
+}

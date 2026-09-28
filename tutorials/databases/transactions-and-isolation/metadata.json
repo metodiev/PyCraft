@@ -1,0 +1,23 @@
+{
+  "id": "databases-transactions-and-isolation",
+  "title": "Transactions, Isolation Levels and MVCC",
+  "summary": "Map isolation levels to the anomalies they permit and reason about snapshot visibility, write conflicts and serialization failures.",
+  "track": "databases",
+  "difficulty": "advanced",
+  "level": "senior",
+  "order_index": 3,
+  "reading_minutes": 5,
+  "tags": [
+    "transactions",
+    "isolation",
+    "mvcc",
+    "concurrency",
+    "acid"
+  ],
+  "skills": [
+    "databases.transactions",
+    "databases",
+    "distributed.consistency"
+  ],
+  "related_challenge": "databases-mvcc-visibility"
+}

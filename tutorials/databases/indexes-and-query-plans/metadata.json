@@ -1,0 +1,23 @@
+{
+  "id": "databases-indexes-and-query-plans",
+  "title": "Indexes, Query Plans and the Cost of a Scan",
+  "summary": "Read a query plan, tell a scan from a seek, and avoid the predicates that quietly defeat an index.",
+  "track": "databases",
+  "difficulty": "intermediate",
+  "level": "intermediate",
+  "order_index": 2,
+  "reading_minutes": 5,
+  "tags": [
+    "indexes",
+    "query-plans",
+    "explain",
+    "b-tree",
+    "performance"
+  ],
+  "skills": [
+    "databases.sql",
+    "databases",
+    "performance"
+  ],
+  "related_challenge": "databases-mvcc-visibility"
+}

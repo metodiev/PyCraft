@@ -1,0 +1,13 @@
+{
+  "id": "backend-engineering-caching-strategies",
+  "title": "Caching: Layers, Invalidation and Staleness",
+  "summary": "Choose cache layers and invalidation strategies deliberately, defend against stampedes, and treat staleness as a correctness budget rather than a tuning knob.",
+  "track": "backend-engineering",
+  "difficulty": "advanced",
+  "level": "senior",
+  "order_index": 2,
+  "reading_minutes": 4,
+  "tags": ["caching", "invalidation", "ttl", "stampede"],
+  "skills": ["backend.caching", "backend", "backend.service_design"],
+  "related_challenge": "backend-engineering-rest-api-service"
+}

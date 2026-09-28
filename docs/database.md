@@ -16,6 +16,7 @@ startup. That split is deliberate:
 | Submission | `submissions` | Every Run and Submit, with results and metrics |
 | Challenge progress | `challenge_progress` | Per-user, per-challenge state and best score |
 | Skill progress | `skill_progress` | Accumulated mastery per skill node |
+| Tutorial reading | `tutorial_reads` | Per-user, per-tutorial read marker (grants no XP) |
 
 ## Development
 
@@ -123,6 +124,13 @@ DELETE FROM challenges WHERE id = 'obsolete-challenge-id';
 
 Foreign keys cascade to `submissions`, `challenge_progress` and
 `skill_progress`, so this removes learner history for that challenge too.
+
+Tutorials are indexed the same way but are **not** projected into the database —
+they are read-only content, so the in-memory catalogue is the whole story. That
+is why `tutorial_reads.tutorial_id` is a plain string rather than a foreign key:
+there is no row for it to reference. A read marker whose tutorial has since been
+removed from disk simply never appears in a response, because the API builds the
+catalogue from the on-disk content and only annotates it with read state.
 
 ## Progress semantics
 

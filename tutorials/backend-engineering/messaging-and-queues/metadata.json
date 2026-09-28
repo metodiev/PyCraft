@@ -1,0 +1,13 @@
+{
+  "id": "backend-engineering-messaging-and-queues",
+  "title": "Messaging and Work Queues: Delivery Semantics",
+  "summary": "Reason about at-least-once delivery, acknowledgements, visibility timeouts and dead-letter queues, and make handlers safe under duplicate delivery.",
+  "track": "backend-engineering",
+  "difficulty": "advanced",
+  "level": "staff",
+  "order_index": 3,
+  "reading_minutes": 4,
+  "tags": ["queues", "messaging", "idempotency", "delivery-semantics"],
+  "skills": ["backend.messaging", "backend", "distributed.idempotency"],
+  "related_challenge": "backend-engineering-rest-api-service"
+}

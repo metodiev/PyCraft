@@ -1,0 +1,21 @@
+{
+  "id": "web-development-http-fundamentals",
+  "title": "HTTP Fundamentals for API Developers",
+  "summary": "Read and write HTTP correctly: methods, status codes, idempotency, headers, content negotiation and stateless authentication.",
+  "track": "web-development",
+  "difficulty": "easy",
+  "level": "intermediate",
+  "order_index": 1,
+  "reading_minutes": 4,
+  "tags": [
+    "http",
+    "rest",
+    "status-codes",
+    "api"
+  ],
+  "skills": [
+    "web.http",
+    "web.api-design"
+  ],
+  "related_challenge": "web-development-validated-microservice"
+}

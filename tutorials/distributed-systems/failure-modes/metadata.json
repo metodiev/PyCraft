@@ -1,0 +1,13 @@
+{
+  "id": "distributed-systems-failure-modes",
+  "title": "Failure Modes: Timeouts, Retries and Partial Failure",
+  "summary": "Bound every remote call with a timeout, spend retries from a budget with jittered backoff, and degrade a feature instead of the whole request path when one dependency stalls.",
+  "track": "distributed-systems",
+  "difficulty": "advanced",
+  "level": "staff",
+  "order_index": 3,
+  "reading_minutes": 6,
+  "tags": ["timeouts", "retries", "backoff", "circuit-breaker", "partial-failure"],
+  "skills": ["distributed.failure-modes", "distributed.resilience", "distributed"],
+  "related_challenge": "distributed-systems-notification-fanout"
+}

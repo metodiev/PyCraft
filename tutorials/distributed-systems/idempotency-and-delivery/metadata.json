@@ -1,0 +1,13 @@
+{
+  "id": "distributed-systems-idempotency-and-delivery",
+  "title": "Idempotency: At-Least-Once Means You Must Deduplicate",
+  "summary": "Design write paths that survive retries: caller-supplied idempotency keys with stored results, idempotent write patterns, and deduplication that turns at-least-once into effectively-once.",
+  "track": "distributed-systems",
+  "difficulty": "advanced",
+  "level": "staff",
+  "order_index": 2,
+  "reading_minutes": 6,
+  "tags": ["idempotency", "deduplication", "retries", "at-least-once", "delivery"],
+  "skills": ["distributed.idempotency", "distributed.delivery", "distributed"],
+  "related_challenge": "distributed-systems-notification-fanout"
+}

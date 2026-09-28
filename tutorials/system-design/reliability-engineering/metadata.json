@@ -1,0 +1,22 @@
+{
+  "id": "system-design-reliability-engineering",
+  "title": "Reliability: SLOs, Error Budgets and Degradation",
+  "summary": "Turn reliability into arithmetic: SLIs, SLOs and SLAs, the error budget in minutes, burn-rate alerting and graceful degradation when a dependency is unhealthy.",
+  "track": "system-design",
+  "difficulty": "advanced",
+  "level": "staff",
+  "order_index": 3,
+  "reading_minutes": 4,
+  "tags": [
+    "slo",
+    "error-budget",
+    "alerting",
+    "degradation",
+    "reliability"
+  ],
+  "skills": [
+    "system_design.reliability",
+    "system_design"
+  ],
+  "related_challenge": "principal-engineer-canary-rollout"
+}

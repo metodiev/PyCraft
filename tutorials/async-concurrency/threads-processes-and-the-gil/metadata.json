@@ -1,0 +1,23 @@
+{
+  "id": "async-concurrency-threads-processes-and-the-gil",
+  "title": "Threads, Processes and the GIL",
+  "summary": "Choose threads, processes or asyncio from the kind of bound your workload has, and handle the shared-state traps that follow.",
+  "track": "async-concurrency",
+  "difficulty": "advanced",
+  "level": "staff",
+  "order_index": 3,
+  "reading_minutes": 5,
+  "tags": [
+    "gil",
+    "threads",
+    "processes",
+    "concurrency",
+    "locking"
+  ],
+  "skills": [
+    "async.concurrency",
+    "async",
+    "performance"
+  ],
+  "related_challenge": "async-concurrency-async-job-queue"
+}

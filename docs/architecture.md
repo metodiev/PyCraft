@@ -16,7 +16,7 @@ way. For threat-model details see [security-model.md](./security-model.md).
            │ REST (JSON)
            ▼
 ┌─────────────────────┐
-│  FastAPI backend    │  Challenge catalogue, scoring, progress
+│  FastAPI backend    │  Challenge & tutorial catalogues, scoring, progress
 │  (backend/)         │  ── never executes user code ──
 └──────────┬──────────┘
            │ Docker API (spawn sandbox)
@@ -29,7 +29,9 @@ way. For threat-model details see [security-model.md](./security-model.md).
 
 Data lives in PostgreSQL (SQLite for local development). Challenges are authored
 as files in `challenges/`, reviewed in pull requests, and indexed into the
-database at API startup.
+database at API startup. Tutorials in `tutorials/` follow the same
+author-review-index flow, but stay in memory — only per-user read markers reach
+the database.
 
 ## Why the API never runs user code
 
@@ -146,6 +148,42 @@ is visible. At run time the starter is normalised to `solution.py`, so authors
 can name their entry file whatever they like while tests always
 `from solution import ...`.
 
+## Tutorial format
+
+Tutorials are reading material that sits beside the challenge catalogue, not
+inside it. They exist so a learner can read about a concept before practising
+it, and they follow the same review-by-pull-request flow as challenges:
+
+```
+tutorials/<track>/<slug>/
+├── metadata.json   # id, title, summary, difficulty, tags, related challenge
+└── tutorial.md     # the article body (Markdown)
+```
+
+The loader
+([`app/services/tutorials.py`](../backend/app/services/tutorials.py)) mirrors the
+challenge loader: `id` must equal `<track>-<slug>`, the track must be one of the
+13 known tracks and must match its directory, and `tutorial.md` must exist and be
+non-empty. Reading time comes from `reading_minutes`, or is estimated at 200
+words per minute when an author omits it.
+
+Tutorials are deliberately ungraded. There is no starter file, no test suite and
+no points, and **reading never grants XP** — the platform's rule is that
+completion is earned by passing tests. The only per-user state is a self-reported
+read marker (`tutorial_reads`), which exists so a learner can see what they have
+covered. Because a tutorial is content rather than a database row, `tutorial_id`
+is a plain string rather than a foreign key.
+
+An optional `related_challenge` links the article to the exercise that applies its
+material, which the article page turns into a "Practise this" call to action.
+
+Article bodies use a deliberately small Markdown subset, rendered by
+[`components/Markdown.tsx`](../frontend/src/components/Markdown.tsx): headings
+(shifted up one level, so `#` renders as `h2`), paragraphs, single-level lists,
+tables, fenced code, inline code, bold/italic, links and `<details>` hints.
+Anything else — blockquotes, images, nested lists, raw HTML — renders as literal
+text, so authors stay inside the subset.
+
 ## Scoring
 
 Correctness is the only dimension that can be measured objectively from a
@@ -205,7 +243,7 @@ src/
 ├── components/          # Reusable UI: cards, badges, Markdown, test results
 ├── hooks/useApi.ts      # Minimal fetch-state hook
 ├── lib/                 # Monaco setup, level definitions
-├── pages/               # Dashboard, challenge list, workspace, roadmap
+├── pages/               # Dashboard, challenge list, workspace, roadmap, tutorials
 └── styles/tokens.css    # Design tokens (dark, IDE-adjacent palette)
 ```
 
@@ -221,6 +259,7 @@ never destroys in-progress work.
 | To add… | Touch |
 | --- | --- |
 | A new challenge | A new directory under `challenges/` — no code |
+| A new tutorial | A new directory under `tutorials/` — no code |
 | A new language/track | `roadmap.py` stage + challenge metadata |
 | A new execution substrate | A new `ExecutionBackend` implementation |
 | A new scoring dimension | The `WEIGHTS` table + a scoring function |

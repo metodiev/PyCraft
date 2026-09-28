@@ -84,6 +84,7 @@ services:
       PYCRAFT_RUNNER_IMAGE: pycraft-runner:3.12
       PYCRAFT_CORS_ORIGINS: "http://localhost:5173"
       PYCRAFT_CHALLENGES_DIR: /app/challenges
+      PYCRAFT_TUTORIALS_DIR: /app/tutorials
     ports:
       - "${PYCRAFT_API_PORT:-8000}:8000"
     volumes:
@@ -93,6 +94,7 @@ services:
       # even though no such file exists on the host.
       - ${PYCRAFT_DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock
       - ./challenges:/app/challenges:ro
+      - ./tutorials:/app/tutorials:ro
     # The socket is owned by root and the daemon's group, with mode 660, while
     # the API runs as an unprivileged user. Without joining that group every
     # connection is refused and submissions fail with "execution backend is not

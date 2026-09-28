@@ -255,6 +255,54 @@ export interface RecentSubmission {
   created_at: string;
 }
 
+// --- tutorials ------------------------------------------------------------
+
+/**
+ * A tutorial as listed in the catalogue.
+ *
+ * There is no `points` or `xp` here by design: reading is never graded, so
+ * `read` is the only per-user state and it grants nothing.
+ */
+export interface TutorialSummary {
+  id: string;
+  title: string;
+  summary: string;
+  track: string;
+  difficulty: string;
+  level: string;
+  order_index: number;
+  reading_minutes: number;
+  tags: string[];
+  skills: string[];
+  word_count: number;
+  related_challenge: string | null;
+  read: boolean;
+}
+
+export interface TutorialDetail extends TutorialSummary {
+  content: string;
+}
+
+export interface TutorialTrack {
+  track: string;
+  label: string;
+  tutorials: TutorialSummary[];
+  read_count: number;
+  total: number;
+}
+
+export interface TutorialCatalogue {
+  tracks: TutorialTrack[];
+  total: number;
+  read_count: number;
+  reading_minutes: number;
+}
+
+export interface TutorialReadResponse {
+  tutorial_id: string;
+  read: boolean;
+}
+
 export interface Dashboard {
   progress: ProgressSummary;
   skills: SkillBar[];
@@ -593,6 +641,21 @@ export const api = {
   getDashboard: (): Promise<Dashboard> => request<Dashboard>("/dashboard"),
 
   getRoadmap: (): Promise<RoadmapStage[]> => request<RoadmapStage[]>("/roadmap"),
+
+  listTutorials: (): Promise<TutorialCatalogue> => request<TutorialCatalogue>("/tutorials"),
+
+  getTutorial: (id: string): Promise<TutorialDetail> =>
+    request<TutorialDetail>(`/tutorials/${encodeURIComponent(id)}`),
+
+  markTutorialRead: (id: string): Promise<TutorialReadResponse> =>
+    request<TutorialReadResponse>(`/tutorials/${encodeURIComponent(id)}/read`, {
+      method: "POST",
+    }),
+
+  clearTutorialRead: (id: string): Promise<TutorialReadResponse> =>
+    request<TutorialReadResponse>(`/tutorials/${encodeURIComponent(id)}/read`, {
+      method: "DELETE",
+    }),
 
   getSkills: (): Promise<SkillBar[]> => request<SkillBar[]>("/skills"),
 

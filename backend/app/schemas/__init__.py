@@ -238,6 +238,54 @@ class RoadmapStageSchema(BaseModel):
     locked: bool
 
 
+class TutorialSummary(BaseModel):
+    """A tutorial as listed in the catalogue.
+
+    Tutorials carry no points: reading is not graded, so completion is still
+    earned by passing tests. ``read`` only records that the learner opened it.
+    """
+
+    id: str
+    title: str
+    summary: str
+    track: str
+    difficulty: str
+    level: str
+    order_index: int
+    reading_minutes: int
+    tags: list[str]
+    skills: list[str]
+    word_count: int
+    related_challenge: str | None = None
+    read: bool = False
+
+
+class TutorialDetail(TutorialSummary):
+    content: str
+
+
+class TutorialTrack(BaseModel):
+    """One track's tutorials, with the reader's coverage of it."""
+
+    track: str
+    label: str
+    tutorials: list[TutorialSummary]
+    read_count: int
+    total: int
+
+
+class TutorialCatalogue(BaseModel):
+    tracks: list[TutorialTrack]
+    total: int
+    read_count: int
+    reading_minutes: int
+
+
+class TutorialReadResponse(BaseModel):
+    tutorial_id: str
+    read: bool
+
+
 class RecentSubmission(BaseModel):
     id: uuid.UUID
     challenge_id: str
@@ -284,4 +332,9 @@ __all__ = [
     "SubmitResponse",
     "TestFileInfo",
     "TestResultSchema",
+    "TutorialCatalogue",
+    "TutorialDetail",
+    "TutorialReadResponse",
+    "TutorialSummary",
+    "TutorialTrack",
 ]

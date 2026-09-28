@@ -78,6 +78,80 @@ included in any response.**
 
 `404` if the challenge does not exist.
 
+## Tutorials
+
+Reading material that sits beside the catalogue. Tutorials are **ungraded**: no
+points, no XP, and no effect on level or progress. The only per-user state is a
+read marker, which grants nothing.
+
+### `GET /tutorials`
+
+Grouped by track, with the caller's read state. Readable while signed out, in
+which case every tutorial reports `read: false`.
+
+```json
+{
+  "total": 39,
+  "read_count": 1,
+  "reading_minutes": 235,
+  "tracks": [
+    {
+      "track": "python-fundamentals",
+      "label": "Python Fundamentals",
+      "read_count": 0,
+      "total": 3,
+      "tutorials": [
+        {
+          "id": "python-fundamentals-functions-and-scope",
+          "title": "Functions, Arguments and Scope",
+          "summary": "Pass arguments correctly…",
+          "track": "python-fundamentals",
+          "difficulty": "beginner",
+          "level": "junior",
+          "order_index": 1,
+          "reading_minutes": 9,
+          "tags": ["functions", "scope"],
+          "skills": ["python.functions"],
+          "word_count": 844,
+          "related_challenge": "python-fundamentals-hello-world",
+          "read": false
+        }
+      ]
+    }
+  ]
+}
+```
+
+`label` reuses the roadmap stage title, so a track reads the same way on both
+pages.
+
+### `GET /tutorials/{id}`
+
+Adds the article body to the summary fields above.
+
+```json
+{
+  "id": "python-fundamentals-functions-and-scope",
+  "...": "(all fields from the list endpoint)",
+  "content": "# Functions, Arguments and Scope\n\n…"
+}
+```
+
+`404` if the tutorial does not exist.
+
+### `POST /tutorials/{id}/read` · `DELETE /tutorials/{id}/read`
+
+Mark a tutorial read, or clear the marker. Both return the resulting state, and
+both `404` for an unknown tutorial.
+
+```json
+{ "tutorial_id": "python-fundamentals-functions-and-scope", "read": true }
+```
+
+`POST` is idempotent: marking an already-read tutorial preserves the original
+timestamp, so the marker records when it was genuinely first completed.
+`DELETE` on a tutorial that was never read succeeds and reports `read: false`.
+
 ## Run and Submit
 
 Both accept the same body.
@@ -430,11 +504,14 @@ administrator out.
 | --- | --- |
 | `/auth/config`, `/auth/register`, `/auth/login`, `/auth/refresh`, `/auth/password/*`, `/auth/github/*` | Public |
 | `/challenges` (browse), `/runtime`, `/health` | Public |
+| `/tutorials` (browse) | Public |
 | `/challenges/{id}/run`, `/challenges/{id}/submit` | Required |
+| `/tutorials/{id}/read` | Required |
 | `/dashboard`, `/progress`, `/roadmap`, `/skills` | Required |
 | `/auth/me*`, `/auth/users*` | Required (admin for the last) |
 
-Browsing the catalogue signed out works and shows no personal progress.
+Browsing the catalogue and reading tutorials signed out works and shows no
+personal progress.
 
 ## Error format
 

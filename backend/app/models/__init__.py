@@ -7,6 +7,7 @@ from app.models.gamification import AchievementCategory, AchievementTier, UserAc
 from app.models.progress import ChallengeProgress, ProgressStatus, SkillProgress
 from app.models.roles import UserRole
 from app.models.submission import Submission, SubmissionKind, SubmissionStatus
+from app.models.tutorial import TutorialRead
 from app.models.user import User
 
 __all__ = [
@@ -24,6 +25,7 @@ __all__ = [
     "Submission",
     "SubmissionKind",
     "SubmissionStatus",
+    "TutorialRead",
     "User",
     "UserAchievement",
     "UserRole",

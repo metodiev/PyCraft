@@ -1,0 +1,22 @@
+{
+  "id": "principal-engineer-cost-and-sustainability",
+  "title": "Cost as an Engineering Constraint",
+  "summary": "Treat cost as a design input: attribute the bill, weigh rightsizing and retention levers, and measure progress as cost per unit of delivered work.",
+  "track": "principal-engineer",
+  "difficulty": "advanced",
+  "level": "principal",
+  "order_index": 3,
+  "reading_minutes": 5,
+  "tags": [
+    "cost",
+    "capacity",
+    "retention",
+    "autoscaling",
+    "unit-economics"
+  ],
+  "skills": [
+    "leadership.cost",
+    "performance.capacity"
+  ],
+  "related_challenge": "principal-engineer-capacity-cost-planner"
+}

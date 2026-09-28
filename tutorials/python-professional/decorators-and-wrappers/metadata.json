@@ -1,0 +1,13 @@
+{
+  "id": "python-professional-decorators-and-wrappers",
+  "title": "Decorators, Wrappers and functools",
+  "summary": "Wrap functions with closures, preserve their metadata with functools.wraps, and write decorator factories such as a retry with backoff.",
+  "track": "python-professional",
+  "difficulty": "intermediate",
+  "level": "junior",
+  "order_index": 2,
+  "reading_minutes": 5,
+  "tags": ["decorators", "closures", "functools"],
+  "skills": ["python.decorators", "python.professional"],
+  "related_challenge": "python-professional-retry-decorator"
+}

@@ -1,0 +1,22 @@
+{
+  "id": "databases-sql-fundamentals",
+  "title": "SQL Fundamentals: Joins, Aggregates and NULL",
+  "summary": "Use the logical order of a SELECT, join types and three-valued logic to predict why a query returns the rows it does.",
+  "track": "databases",
+  "difficulty": "easy",
+  "level": "intermediate",
+  "order_index": 1,
+  "reading_minutes": 5,
+  "tags": [
+    "sql",
+    "joins",
+    "aggregates",
+    "null",
+    "three-valued-logic"
+  ],
+  "skills": [
+    "databases.sql",
+    "databases"
+  ],
+  "related_challenge": "databases-sql-where-compiler"
+}

@@ -16,6 +16,8 @@ import { Dashboard } from "./pages/Dashboard";
 import { ChallengeList } from "./pages/ChallengeList";
 import { ChallengeWorkspace } from "./pages/ChallengeWorkspace";
 import { RoadmapPage } from "./pages/RoadmapPage";
+import { TutorialList } from "./pages/TutorialList";
+import { TutorialPage } from "./pages/TutorialPage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
@@ -41,6 +43,8 @@ export default function App() {
           <Route path="challenges" element={<ChallengeList />} />
           <Route path="challenges/:challengeId" element={<ChallengeWorkspace />} />
           <Route path="roadmap" element={<RoadmapPage />} />
+          <Route path="tutorials" element={<TutorialList />} />
+          <Route path="tutorials/:tutorialId" element={<TutorialPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="authoring" element={<AuthoringPage />} />
           <Route path="authoring/:track/:slug" element={<AuthoringPage />} />

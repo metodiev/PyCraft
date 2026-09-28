@@ -164,6 +164,7 @@ class Settings(BaseSettings):
 
     # --- Content ---------------------------------------------------------
     challenges_dir: Path = REPO_ROOT / "challenges"
+    tutorials_dir: Path = REPO_ROOT / "tutorials"
 
     # --- Execution -------------------------------------------------------
     execution_backend: Literal["docker", "local"] = "docker"
@@ -194,7 +195,7 @@ class Settings(BaseSettings):
     default_time_limit_ms: int = 5_000
     default_memory_limit_mb: int = 128
 
-    @field_validator("challenges_dir", "database_url", mode="before")
+    @field_validator("challenges_dir", "tutorials_dir", "database_url", mode="before")
     @classmethod
     def _expand_user(cls, value: object) -> object:
         if isinstance(value, str):

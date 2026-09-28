@@ -1,0 +1,13 @@
+{
+  "id": "performance-profiling-python",
+  "title": "Profiling: Measure Before You Optimise",
+  "summary": "Use timeit and cProfile to find the function that actually costs time, read cumulative versus own time correctly, and re-measure every change.",
+  "track": "performance",
+  "difficulty": "intermediate",
+  "level": "senior",
+  "order_index": 2,
+  "reading_minutes": 4,
+  "tags": ["profiling", "cprofile", "timeit", "optimisation"],
+  "skills": ["performance", "performance.profiling"],
+  "related_challenge": "performance-range-sum-queries"
+}

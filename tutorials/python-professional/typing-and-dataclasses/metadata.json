@@ -1,0 +1,13 @@
+{
+  "id": "python-professional-typing-and-dataclasses",
+  "title": "Type Hints and Dataclasses That Earn Their Keep",
+  "summary": "Use annotations and dataclasses for structure that tooling can check, and avoid the mutable-default and runtime-enforcement traps.",
+  "track": "python-professional",
+  "difficulty": "intermediate",
+  "level": "junior",
+  "order_index": 1,
+  "reading_minutes": 5,
+  "tags": ["typing", "dataclasses", "annotations"],
+  "skills": ["python.typing", "python.dataclasses", "python.professional"],
+  "related_challenge": "python-professional-dataclass-serializer"
+}

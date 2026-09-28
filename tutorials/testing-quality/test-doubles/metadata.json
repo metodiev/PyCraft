@@ -1,0 +1,21 @@
+{
+  "id": "testing-quality-test-doubles",
+  "title": "Test Doubles: Spies, Stubs and Mocks",
+  "summary": "Choose the right double for the job, patch names where they are looked up, and keep tests asserting on behaviour instead of implementation.",
+  "track": "testing-quality",
+  "difficulty": "intermediate",
+  "level": "intermediate",
+  "order_index": 2,
+  "reading_minutes": 4,
+  "tags": [
+    "mocking",
+    "unittest-mock",
+    "testing",
+    "patching"
+  ],
+  "skills": [
+    "testing.mock",
+    "testing.quality"
+  ],
+  "related_challenge": "testing-quality-spy-and-stub"
+}
